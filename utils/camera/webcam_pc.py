@@ -1,10 +1,9 @@
 import cv2
 from threading import Thread,Lock
 import time
-import logging
 
 use_thread = False
-need_flip = False
+need_flip = True
 cap = None
 frame = None
 
@@ -12,10 +11,10 @@ frame = None
 # init(), read_frame(), stop()
 
 def init(res=(320, 240), fps=30, threading=True):
-	logging.info("Camera systems initializing...")
+	print ("Initializing camera...")
 	global cap, use_thread, frame, cam_thr
 
-	cap = cv2.VideoCapture("data/video/TestTrack.mp4")
+	cap = cv2.VideoCapture(0)
 
 	cap.set(3, res[0]) # width
 	cap.set(4, res[1]) # height
@@ -26,29 +25,25 @@ def init(res=(320, 240), fps=30, threading=True):
 		use_thread = True
 		cam_thr = Thread(target=__update, args=())
 		cam_thr.start()
-		logging.info("Initializing threads...")
+		print ("start camera thread")
 		time.sleep(1.0)
 	else:
-		logging.info("No threads to initialize!")
+		print ("No camera threading.")
 	if need_flip == True:
-		logging.info("Initializing camera flip...")
+		print ("camera is Flipped")
 	
-	logging.info("All camera systems go!")
+	print ("camera Initialized!")
 
 def __update():
 	global frame
 	while use_thread:
 		ret, tmp_frame = cap.read() # blocking read
-		if not ret:
-			logging.error("Couldn't read frame from camera.")
-			break
 		if need_flip == True:
 			frame = cv2.flip(tmp_frame, -1)
 		else:
 			frame = tmp_frame
-	logging.info("Camera thread finished!")
+	print ("Camera thread finished...")
 	cap.release()
-	logging.info("Camera systems completed a graceful shutdown.")
 
 def read_frame():
 	global frame
@@ -58,16 +53,16 @@ def read_frame():
 
 def stop():
 	global use_thread
-	logging.info("Closing the video feed...")
+	print ("Close the camera.")
 	use_thread = False
-	logging.warning("Abrupt camera shutdown!")
 
 if __name__ == "__main__":
-	logging.basicConfig(level=logging.INFO)
 	init()
 	while True:
 		frame = read_frame()
 		cv2.imshow('frame', frame)
-		if cv2.waitKey(10) & 0xFF == ord('q'):
+		ch = cv2.waitKey(1) & 0xFF
+		if ch == ord('q'):
 			stop()
 			break
+		
