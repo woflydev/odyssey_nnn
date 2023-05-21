@@ -4,7 +4,7 @@
 Check ``odyssey_cnn`` for more detailed information about us and the team!
 | Repo | Description |
 | ---- | --- |
-| [woflydev/odyssey_nnn](https://github.com/woflydev/odyssey_nnn) | New and refreshed implementation of Project Odyssey's CNN driver. |
+| [woflydev/odyssey_cnn](https://github.com/woflydev/odyssey_cnn) | Main root repository for the Odyssey project. |
 | [woflydev/odyssey_data](https://github.com/woflydev/odyssey_data) | Unity simulation to generate virutal road scenes to train AI |
 | [woflydev/odyssey_img](https://github.com/woflydev/odyssey_img) | Data exported from woflydev/odyssey_data |
 | [woflydev/odyssey_docs](https://github.com/woflydev/odyssey_docs) | Upcoming documentation for Project Odyssey files and regular progress updates. |
