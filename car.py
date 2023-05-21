@@ -128,28 +128,29 @@ print ("Loading model: " + params.model_file)
 
 print("use_tensorflow:", args.use_tensorflow)
 if args.use_tensorflow:
-    from tensorflow import keras
-    model = keras.models.load_model(params.model_file+'.h5')
+  from tensorflow import keras
+  model = keras.models.load_model(params.model_file+'.h5')
 else:
-    try:
-        # Import TFLite interpreter from tflite_runtime package if it's available.
-        from tflite_runtime.interpreter import Interpreter
-        interpreter = Interpreter(params.model_file+'.tflite', num_threads=args.ncpu)
-    except ImportError:
-        # Import TFLMicro interpreter
-        try:
-            from tflite_micro_runtime.interpreter import Interpreter 
-            interpreter = Interpreter(params.model_file+'.tflite')
-        except:
-            # If all failed, fallback to use the TFLite interpreter from the full TF package.
-            import tensorflow as tf
-            interpreter = tf.lite.Interpreter(model_path=params.model_file+'.tflite', num_threads=args.ncpu)
+	print("L bozo ur not using tflite")
+	"""try:
+			# Import TFLite interpreter from tflite_runtime package if it's available.
+			from tflite_runtime.interpreter import Interpreter
+			interpreter = Interpreter(params.model_file+'.tflite', num_threads=args.ncpu)
+	except ImportError:
+			# Import TFLMicro interpreter
+			try:
+					from tflite_micro_runtime.interpreter import Interpreter 
+					interpreter = Interpreter(params.model_file+'.tflite')
+			except:
+					# If all failed, fallback to use the TFLite interpreter from the full TF package.
+					import tensorflow as tf
+					interpreter = tf.lite.Interpreter(model_path=params.model_file+'.tflite', num_threads=args.ncpu)
 
-    interpreter.allocate_tensors()
-    input_index = interpreter.get_input_details()[0]["index"]
-    output_index = interpreter.get_output_details()[0]["index"]
+	interpreter.allocate_tensors()
+	input_index = interpreter.get_input_details()[0]["index"]
+	output_index = interpreter.get_output_details()[0]["index"]"""
 
-# initlaize deeppicar modules
+# initialize deeppicar modules
 actuator.init(args.throttle)
 camera.init(res=cfg_cam_res, fps=cfg_cam_fps, threading=use_thread)
 atexit.register(turn_off)
