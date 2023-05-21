@@ -9,10 +9,12 @@ import sys
 import params
 import argparse
 
+from utils.motor_lib.driver import move, off
+
 from PIL import Image, ImageDraw
 
 ##########################################################
-# import deeppicar's sensor/actuator modules
+# import car's sensor/actuator modules
 ##########################################################
 camera   = __import__(params.camera)
 actuator = __import__(params.actuator)
@@ -49,7 +51,8 @@ def g_tick():
 		yield max(t + count*period - time.time(),0)
 
 def turn_off():
-	actuator.stop()
+	#actuator.stop()
+	off()
 	camera.stop()
 	if frame_id > 0:
 		keyfile.close()
@@ -93,7 +96,7 @@ def overlay_image(l_img, s_img, x_offset, y_offset):
 # program begins
 ##########################################################
 
-parser = argparse.ArgumentParser(description='DeepPicar main')
+parser = argparse.ArgumentParser(description='Odyssey NNN Main Program')
 parser.add_argument("-d", "--dnn", help="Enable DNN", action="store_true")
 parser.add_argument("-t", "--throttle", help="throttle percent. [0-100]%", type=int, default=50)
 parser.add_argument("--turnthresh", help="throttle percent. [0-30]degree", type=int, default=10)
@@ -105,7 +108,7 @@ parser.add_argument("--pre", help="preprocessing [resize|crop]", type=str, defau
 args = parser.parse_args()
 
 if args.dnn:
-	print ("DNN is on")
+	print ("DNN is on!")
 	use_dnn = True
 if args.throttle:
 	print ("throttle = %d pct" % (args.throttle))
@@ -122,7 +125,7 @@ if args.fpvvideo:
 print ("preprocessing:", args.pre)
 
 ##########################################################
-# import deeppicar's DNN model
+# import car's DNN model
 ##########################################################
 print ("Loading model: " + params.model_file)
 
@@ -213,9 +216,10 @@ while True:
 		if args.use_tensorflow:
 			angle = model.predict(img)[0]
 		else:
-			interpreter.set_tensor(input_index, img)
+			print("L bozo ur not using tflite")
+			"""interpreter.set_tensor(input_index, img)
 			interpreter.invoke()
-			angle = interpreter.get_tensor(output_index)[0][0]
+			angle = interpreter.get_tensor(output_index)[0][0]"""
 
 		degree = rad2deg(angle)
 		if degree <= -args.turnthresh:
