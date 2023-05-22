@@ -1,6 +1,10 @@
-from board import SCL, SDA
-import busio
-from adafruit_pca9685 import PCA9685
+try:
+    from board import SCL, SDA
+    import busio
+    from adafruit_pca9685 import PCA9685
+except ImportError:
+    raise ImportError("Motor driver not initialized. Only runs on Linux!")
+
 from time import sleep
 #from math import abs
 

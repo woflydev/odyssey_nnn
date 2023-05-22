@@ -6,20 +6,27 @@ import cv2
 import math
 import numpy as np
 import sys
-import params
+import params as params
 import argparse
 import logging
+from importlib import import_module
 
-from utils.motor_lib.driver import move, off, drivePin
-
+try:
+	from utils.motor_lib.driver import move, off, drivePin
+	from utils.camera.webcam import *
+except:
+	from utils.motor_lib.driver_pc import move, off, drivePin
 from PIL import Image, ImageDraw
 
 ##########################################################
 # import car's sensor/actuator modules
 ##########################################################
-camera   = __import__(params.camera)
+camera = import_module(params.camera)
+inputdev = import_module(params.inputdev)
+
+#camera = __import__(params.camera) # this doesnt work with directories
 #actuator = __import__(params.actuator)
-inputdev = __import__(params.inputdev)
+
 
 ##########################################################
 # global variable initialization
@@ -224,6 +231,8 @@ while True:
 
 	# receive input (must be non blocking)
 	ch = inputdev.read_single_event()
+
+	current_angle = 90
 
 	if ch == ord('j'): # left
 		angle = deg2rad(-30)

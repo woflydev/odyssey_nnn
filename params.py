@@ -3,14 +3,14 @@
 # camera module selection
 #   "camera-webcam" "camera-null"
 ##########################################################
-camera="utils.camera.webcam"
+camera="utils.camera.webcam_pc"
 
 ##########################################################
 # actuator selection
 #   "actuator-drv8835", "actuator-adafruit_hat"
 #   "actuator-null", "driver"
 ##########################################################
-actuator="utils.motor_lib.actuator-drv8835"
+actuator="lib.motor_lib.actuator-drv8835"
 
 ##########################################################
 # intputdev selection
