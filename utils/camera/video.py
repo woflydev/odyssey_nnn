@@ -3,6 +3,8 @@ from threading import Thread,Lock
 import time
 import logging
 
+VIDEO_FILE = "data/video/campusData.mp4"
+
 use_thread = False
 need_flip = False
 cap = None
@@ -15,7 +17,7 @@ def init(res=(320, 240), fps=30, threading=True):
 	logging.info("Camera systems initializing...")
 	global cap, use_thread, frame, cam_thr
 
-	cap = cv2.VideoCapture("data/video/TestTrack.mp4")
+	cap = cv2.VideoCapture(VIDEO_FILE)
 
 	cap.set(3, res[0]) # width
 	cap.set(4, res[1]) # height
@@ -48,7 +50,7 @@ def __update():
 			frame = tmp_frame
 	logging.info("Camera thread finished!")
 	cap.release()
-	logging.info("Camera systems completed a graceful shutdown.")
+	logging.info("Camera systems completed a full shutdown.")
 
 def read_frame():
 	global frame

@@ -1,6 +1,6 @@
 import io
 import cv2
-camera   = __import__("camera-webcam")
+camera = __import__("webcam_pc")
 import logging
 import socketserver
 from threading import Condition
@@ -9,12 +9,16 @@ from http import server
 PAGE="""\
 <html>
 <head>
-<title>WebCam MJPEG streaming</title>
+<title>Odyssey Webcam</title>
 </head>
 <body>
-<h1>PiCamera MJPEG Streaming Demo</h1>
-<img src="stream.mjpg" width="320" height="240" />
+
+<center> 
+    <h1>Odyssey Webcam</h1>
+        <img src="stream.mjpg" width="1920" height="1080" /> 
+    </center>
 </body>
+
 </html>
 """
 

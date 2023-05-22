@@ -12,7 +12,7 @@ frame = None
 # init(), read_frame(), stop()
 
 def init(res=(320, 240), fps=30, threading=True):
-	print ("Initializing Camera...")
+	logging.info("Camera systems initializing...")
 	global cap, use_thread, frame, cam_thr
 
 	cap = cv2.VideoCapture("/dev/video0")
@@ -26,13 +26,13 @@ def init(res=(320, 240), fps=30, threading=True):
 		use_thread = True
 		cam_thr = Thread(target=__update, args=())
 		cam_thr.start()
-		print ("Camera thread started!")
+		logging.info("Initializing threads...")
 		time.sleep(1.0)
 	else:
-		print ("No camera threading.")
+		logging.info("No threads to initialize!")
 	if need_flip == True:
-		print ("camera is Flipped")
-	
+		logging.info("Initializing camera flip...")
+
 	logging.info("All camera systems go!")
 
 def __update():
