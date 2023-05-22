@@ -2,7 +2,14 @@ import os
 import time
 import atexit
 # this only works on linux, don't bother on windows
-import termios, fcntl, sys, os
+try:
+    import termios
+    import fcntl
+except ImportError:
+    print("Keyboard not initialized. Only runs on Linux!")
+    pass
+
+import sys, os
 import select
 
 def init():

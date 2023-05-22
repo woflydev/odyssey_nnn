@@ -8,8 +8,9 @@ import numpy as np
 import sys
 import params
 import argparse
+import logging
 
-from utils.motor_lib.driver import move, off
+#from utils.motor_lib.driver import move, off, drivePin
 
 from PIL import Image, ImageDraw
 
@@ -17,7 +18,7 @@ from PIL import Image, ImageDraw
 # import car's sensor/actuator modules
 ##########################################################
 camera   = __import__(params.camera)
-actuator = __import__(params.actuator)
+#actuator = __import__(params.actuator)
 inputdev = __import__(params.inputdev)
 
 ##########################################################
@@ -43,6 +44,21 @@ def deg2rad(deg):
 def rad2deg(rad):
 	return 180.0 * rad / math.pi
 
+def starup_signal(iterations, delay):
+	BLINK_DELAY = 0.2
+	for i in range(iterations):
+		try:
+			drivePin(15, 100)
+			time.sleep(BLINK_DELAY)
+			drivePin(15, 0)
+			time.sleep(delay)
+			drivePin(15, 100)
+			time.sleep(BLINK_DELAY)
+			drivePin(15, 0)
+		except:
+			logging.warning("Driver not initialized.")
+
+
 def g_tick():
 	t = time.time()
 	count = 0
@@ -54,6 +70,7 @@ def turn_off():
 	#actuator.stop()
 	off()
 	camera.stop()
+	drivePin(15, 0)
 	if frame_id > 0:
 		keyfile.close()
 		vidfile.release()
@@ -108,7 +125,7 @@ parser.add_argument("--pre", help="preprocessing [resize|crop]", type=str, defau
 args = parser.parse_args()
 
 if args.dnn:
-	print ("DNN is on!")
+	print("DNN is on!")
 	use_dnn = True
 if args.throttle:
 	print ("throttle = %d pct" % (args.throttle))
@@ -135,6 +152,9 @@ if args.use_tensorflow:
 	model = keras.models.load_model(params.model_file+'.h5')
 else:
 	print("L bozo ur not using tflite")
+	from tensorflow import keras
+	model = keras.models.load_model(params.model_file+'.h5')
+	
 	"""try:
 			# Import TFLite interpreter from tflite_runtime package if it's available.
 			from tflite_runtime.interpreter import Interpreter
@@ -153,8 +173,8 @@ else:
 	input_index = interpreter.get_input_details()[0]["index"]
 	output_index = interpreter.get_output_details()[0]["index"]"""
 
-# initialize deeppicar modules
-actuator.init(args.throttle)
+# initialize car modules
+#actuator.init(args.throttle)
 camera.init(res=cfg_cam_res, fps=cfg_cam_fps, threading=use_thread)
 atexit.register(turn_off)
 
@@ -163,6 +183,9 @@ start_ts = time.time()
 
 frame_arr = []
 angle_arr = []
+
+# startup signal
+
 # enter main loop
 while True:
 	if use_thread:

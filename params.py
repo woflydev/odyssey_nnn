@@ -8,7 +8,7 @@ camera="utils.camera.webcam"
 ##########################################################
 # actuator selection
 #   "actuator-drv8835", "actuator-adafruit_hat"
-#   "actuator-null"
+#   "actuator-null", "driver"
 ##########################################################
 actuator="utils.motor_lib.actuator-drv8835"
 
