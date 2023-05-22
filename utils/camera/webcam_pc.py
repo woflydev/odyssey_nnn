@@ -3,14 +3,14 @@ from threading import Thread,Lock
 import time
 
 use_thread = False
-need_flip = True
+need_flip = False
 cap = None
 frame = None
 
 # public API
 # init(), read_frame(), stop()
 
-def init(res=(320, 240), fps=30, threading=True):
+def init(res=(320, 240), fps=60, threading=True):
 	print ("Initializing camera...")
 	global cap, use_thread, frame, cam_thr
 
@@ -25,14 +25,14 @@ def init(res=(320, 240), fps=30, threading=True):
 		use_thread = True
 		cam_thr = Thread(target=__update, args=())
 		cam_thr.start()
-		print ("start camera thread")
+		print("start camera thread")
 		time.sleep(1.0)
 	else:
-		print ("No camera threading.")
+		print("No camera threading.")
 	if need_flip == True:
 		print ("camera is Flipped")
 	
-	print ("camera Initialized!")
+	print("camera Initialized!")
 
 def __update():
 	global frame
@@ -42,7 +42,7 @@ def __update():
 			frame = cv2.flip(tmp_frame, -1)
 		else:
 			frame = tmp_frame
-	print ("Camera thread finished...")
+	print("Camera thread finished...")
 	cap.release()
 
 def read_frame():

@@ -43,7 +43,8 @@ def __update():
 		ret, tmp_frame = cap.read() # blocking read
 		if not ret:
 			logging.error("Couldn't read frame from camera. Did the video finish?")
-			break
+			time.sleep(2)
+			continue
 		if need_flip == True:
 			frame = cv2.flip(tmp_frame, -1)
 		else:
