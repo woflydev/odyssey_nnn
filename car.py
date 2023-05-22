@@ -234,7 +234,7 @@ while True:
 
 		current_angle = 90
 
-		if ch == ord('j'): # left
+		if ch == ord('a'): # left
 			angle = deg2rad(-30)
 			move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
 			#actuator.left()
@@ -243,7 +243,7 @@ while True:
 			angle = deg2rad(0)
 			#actuator.center()
 			print("center")
-		elif ch == ord('l'): # right
+		elif ch == ord('d'): # right
 			angle = deg2rad(30)
 			#actuator.right()
 			move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
@@ -251,12 +251,12 @@ while True:
 		elif ch == ord('a'):
 			#actuator.ffw()
 			move(BASE_SPEED, BASE_SPEED)
-			print("accel")
-		elif ch == ord('s'):
+			print("forward")
+		elif ch == ord('/'):
 			#actuator.stop()
 			off()
 			print ("stop")
-		elif ch == ord('z'):
+		elif ch == ord('s'):
 			#actuator.rew()
 			move(-BASE_SPEED, -BASE_SPEED)
 			print("reverse")
@@ -266,7 +266,7 @@ while True:
 		elif ch == ord('t'):
 			print ("toggle video mode")
 			VIDEO_FEED = not VIDEO_FEED
-		elif ch == ord('d'):
+		elif ch == ord('n'):
 			print ("toggle DNN mode")
 			USE_NETWORK = not USE_NETWORK
 		elif ch == ord('q'):
