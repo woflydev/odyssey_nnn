@@ -42,7 +42,7 @@ def __update():
 	while use_thread:
 		ret, tmp_frame = cap.read() # blocking read
 		if not ret:
-			logging.error("Couldn't read frame from camera.")
+			logging.error("Couldn't read frame from camera. Did the video finish?")
 			break
 		if need_flip == True:
 			frame = cv2.flip(tmp_frame, -1)
@@ -54,7 +54,7 @@ def __update():
 
 def read_frame():
 	global frame
-	if not use_thread:
+	if not use_thread and ret == True:
 		ret, frame = cap.read() # blocking read
 	return frame
 
