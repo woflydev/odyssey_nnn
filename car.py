@@ -10,7 +10,7 @@ import params
 import argparse
 import logging
 
-#from utils.motor_lib.driver import move, off, drivePin
+from utils.motor_lib.driver import move, off, drivePin
 
 from PIL import Image, ImageDraw
 
@@ -24,14 +24,26 @@ inputdev = __import__(params.inputdev)
 ##########################################################
 # global variable initialization
 ##########################################################
-use_dnn = False
-use_thread = True
-view_video = False
-fpv_video = False
-enable_record = False
-cfg_cam_res = (320, 240)
-cfg_cam_fps = 30
+BASE_SPEED = 40
 
+#---------------------#
+# Camera Config 			#
+#---------------------#
+CAMERA_FPS = 30
+CAMERA_RESOLUTION = (320, 240)
+VIDEO_FEED = False
+USE_THREADING = True
+RECORD_DATA = False
+
+#---------------------#
+# Network Config 			#
+#---------------------#
+USE_NETWORK = False
+FPV_VIDEO = False # only works if USE_NETWORK is true
+
+#---------------------#
+# System Variables		#
+#---------------------#
 frame_id = 0
 angle = 0.0
 period = 0.05 # sec (=50ms)
@@ -57,7 +69,6 @@ def starup_signal(iterations, delay):
 			drivePin(15, 0)
 		except:
 			logging.warning("Driver not initialized.")
-
 
 def g_tick():
 	t = time.time()
@@ -109,6 +120,19 @@ def overlay_image(l_img, s_img, x_offset, y_offset):
 		x_offset:x_offset+s_img.shape[1], c] * (1.0 - s_img[:,:,3]/255.0))
 		return l_img
 
+def angle_to_thrust(speed, theta):
+	try:
+		theta = ((theta + 180) % 360) - 180  # normalize value to [-180, 180)
+		speed = min(max(0, speed), 100) # normalize value to [0, 100]
+		v_a = speed * (45 - theta % 90) / 45 # falloff of main motor
+		v_b = min(100, 2 * speed + v_a, 2 * speed - v_a) # compensation of other motor
+		if theta < -90: return -v_b, -v_a
+		if theta < 0:   return -v_a, v_b
+		if theta < 90:  return v_b, v_a
+		return [v_a, -v_b]
+	except:
+			logging.error("Couldn't calculate steering angle!")
+
 ##########################################################
 # program begins
 ##########################################################
@@ -126,7 +150,7 @@ args = parser.parse_args()
 
 if args.dnn:
 	print("DNN is on!")
-	use_dnn = True
+	USE_NETWORK = True
 if args.throttle:
 	print ("throttle = %d pct" % (args.throttle))
 if args.turnthresh:
@@ -136,7 +160,7 @@ if args.hz:
 	period = 1.0/args.hz
 	print("new period: ", period)
 if args.fpvvideo:
-	fpv_video = True
+	FPV_VIDEO = True
 	print("FPV video of DNN driving is on")
 
 print ("preprocessing:", args.pre)
@@ -151,7 +175,7 @@ if args.use_tensorflow:
 	from tensorflow import keras
 	model = keras.models.load_model(params.model_file+'.h5')
 else:
-	print("L bozo ur not using tflite")
+	logging.warning("L bozo ur not using tflite. Using H5 instead...")
 	from tensorflow import keras
 	model = keras.models.load_model(params.model_file+'.h5')
 	
@@ -175,7 +199,7 @@ else:
 
 # initialize car modules
 #actuator.init(args.throttle)
-camera.init(res=cfg_cam_res, fps=cfg_cam_fps, threading=use_thread)
+camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 atexit.register(turn_off)
 
 g = g_tick()
@@ -185,15 +209,16 @@ frame_arr = []
 angle_arr = []
 
 # startup signal
+starup_signal(1, 0.2)
 
 # enter main loop
 while True:
-	if use_thread:
+	if USE_THREADING:
 		time.sleep(next(g))
 	frame = camera.read_frame()
 	ts = time.time()
 
-	if view_video == True:
+	if VIDEO_FEED == True:
 		cv2.imshow('frame', frame)
 		cv2.waitKey(1) & 0xFF
 
@@ -202,44 +227,50 @@ while True:
 
 	if ch == ord('j'): # left
 		angle = deg2rad(-30)
-		actuator.left()
+		move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
+		#actuator.left()
 		print ("left")
 	elif ch == ord('k'): # center
 		angle = deg2rad(0)
-		actuator.center()
-		print ("center")
+		#actuator.center()
+		print("center")
 	elif ch == ord('l'): # right
 		angle = deg2rad(30)
-		actuator.right()
-		print ("right")
+		#actuator.right()
+		move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
+		print("right")
 	elif ch == ord('a'):
-		actuator.ffw()
-		print ("accel")
+		#actuator.ffw()
+		move(BASE_SPEED, BASE_SPEED)
+		print("accel")
 	elif ch == ord('s'):
-		actuator.stop()
+		#actuator.stop()
+		off()
 		print ("stop")
 	elif ch == ord('z'):
-		actuator.rew()
-		print ("reverse")
+		#actuator.rew()
+		move(-BASE_SPEED, -BASE_SPEED)
+		print("reverse")
 	elif ch == ord('r'):
 		print ("toggle record mode")
-		enable_record = not enable_record
+		RECORD_DATA = not RECORD_DATA
 	elif ch == ord('t'):
 		print ("toggle video mode")
-		view_video = not view_video
+		VIDEO_FEED = not VIDEO_FEED
 	elif ch == ord('d'):
 		print ("toggle DNN mode")
-		use_dnn = not use_dnn
+		USE_NETWORK = not USE_NETWORK
 	elif ch == ord('q'):
 		break
-	elif use_dnn == True:
+	elif USE_NETWORK == True:
 		# 1. machine input
 		img = preprocess(frame)
 		img = np.expand_dims(img, axis=0).astype(np.float32)
 		if args.use_tensorflow:
 			angle = model.predict(img)[0]
 		else:
-			print("L bozo ur not using tflite")
+			logging.warning("L bozo ur not using tflite. Using H5 instead...")
+			angle = model.predict(img)[0]
 			"""interpreter.set_tensor(input_index, img)
 			interpreter.invoke()
 			angle = interpreter.get_tensor(output_index)[0][0]"""
@@ -262,7 +293,7 @@ while True:
 	else:
 		print("%.3f: took %d ms" % (ts - start_ts, int(dur * 1000)))
 
-	if enable_record == True and frame_id == 0:
+	if RECORD_DATA == True and frame_id == 0:
 		# create files for data recording
 		keyfile = open(params.rec_csv_file, 'w+')
 		keyfile.write("ts,frame,wheel\n") # ts (ms)
@@ -270,8 +301,9 @@ while True:
 			fourcc = cv2.cv.CV_FOURCC(*'XVID')
 		except AttributeError as e:
 			fourcc = cv2.VideoWriter_fourcc(*'XVID')
-			vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, cfg_cam_fps, cfg_cam_res)
-	if enable_record == True and frame is not None:
+			vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, CAMERA_FPS, CAMERA_RESOLUTION)
+
+	if RECORD_DATA == True and frame is not None:
 		# increase frame_id
 		frame_id += 1
 
@@ -279,7 +311,7 @@ while True:
 		str = "{},{},{}\n".format(int(ts*1000), frame_id, angle)
 		keyfile.write(str)
 
-		if use_dnn and fpv_video:
+		if USE_NETWORK and FPV_VIDEO:
 			textColor = (255,255,255)
 			bgColor = (0,0,0)
 			newImage = Image.new('RGBA', (100, 20), bgColor)
