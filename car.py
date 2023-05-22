@@ -5,7 +5,6 @@ import atexit
 import cv2
 import math
 import numpy as np
-import sys
 import params as params
 import argparse
 import logging
@@ -87,11 +86,11 @@ def g_tick():
 def turn_off():
 	#actuator.stop()
 	off()
-	camera.stop()
 	drivePin(15, 0)
 	if frame_id > 0:
 		keyfile.close()
 		vidfile.release()
+	camera.stop()
 
 def crop_image(img):
 	scaled_img = cv2.resize(img, (max(int(params.img_height * 4 / 3), params.img_width), params.img_height))
@@ -218,125 +217,129 @@ angle_arr = []
 # startup signal
 starup_signal(1, 0.2)
 
-# enter main loop
+	# enter main loop
 while True:
-	if USE_THREADING:
-		time.sleep(next(g))
-	frame = camera.read_frame()
-	ts = time.time()
+	try:
+		if USE_THREADING:
+			time.sleep(next(g))
+		frame = camera.read_frame()
+		ts = time.time()
 
-	if VIDEO_FEED == True:
-		cv2.imshow('frame', frame)
-		cv2.waitKey(1) & 0xFF
+		if VIDEO_FEED == True:
+			cv2.imshow('frame', frame)
+			cv2.waitKey(1) & 0xFF
 
-	# receive input (must be non blocking)
-	ch = inputdev.read_single_event()
+		# receive input (must be non blocking)
+		ch = "0030" #inputdev.read_single_event()
 
-	current_angle = 90
+		current_angle = 90
 
-	if ch == ord('j'): # left
-		angle = deg2rad(-30)
-		move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
-		#actuator.left()
-		print ("left")
-	elif ch == ord('k'): # center
-		angle = deg2rad(0)
-		#actuator.center()
-		print("center")
-	elif ch == ord('l'): # right
-		angle = deg2rad(30)
-		#actuator.right()
-		move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
-		print("right")
-	elif ch == ord('a'):
-		#actuator.ffw()
-		move(BASE_SPEED, BASE_SPEED)
-		print("accel")
-	elif ch == ord('s'):
-		#actuator.stop()
-		off()
-		print ("stop")
-	elif ch == ord('z'):
-		#actuator.rew()
-		move(-BASE_SPEED, -BASE_SPEED)
-		print("reverse")
-	elif ch == ord('r'):
-		print ("toggle record mode")
-		RECORD_DATA = not RECORD_DATA
-	elif ch == ord('t'):
-		print ("toggle video mode")
-		VIDEO_FEED = not VIDEO_FEED
-	elif ch == ord('d'):
-		print ("toggle DNN mode")
-		USE_NETWORK = not USE_NETWORK
-	elif ch == ord('q'):
-		break
-	elif USE_NETWORK == True:
-		# 1. machine input
-		img = preprocess(frame)
-		img = np.expand_dims(img, axis=0).astype(np.float32)
-		if args.use_tensorflow:
-			angle = model.predict(img)[0]
+		if ch == ord('j'): # left
+			angle = deg2rad(-30)
+			move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
+			#actuator.left()
+			print ("left")
+		elif ch == ord('k'): # center
+			angle = deg2rad(0)
+			#actuator.center()
+			print("center")
+		elif ch == ord('l'): # right
+			angle = deg2rad(30)
+			#actuator.right()
+			move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
+			print("right")
+		elif ch == ord('a'):
+			#actuator.ffw()
+			move(BASE_SPEED, BASE_SPEED)
+			print("accel")
+		elif ch == ord('s'):
+			#actuator.stop()
+			off()
+			print ("stop")
+		elif ch == ord('z'):
+			#actuator.rew()
+			move(-BASE_SPEED, -BASE_SPEED)
+			print("reverse")
+		elif ch == ord('r'):
+			print ("toggle record mode")
+			RECORD_DATA = not RECORD_DATA
+		elif ch == ord('t'):
+			print ("toggle video mode")
+			VIDEO_FEED = not VIDEO_FEED
+		elif ch == ord('d'):
+			print ("toggle DNN mode")
+			USE_NETWORK = not USE_NETWORK
+		elif ch == ord('q'):
+			break
+		elif USE_NETWORK == True:
+			# 1. machine input
+			img = preprocess(frame)
+			img = np.expand_dims(img, axis=0).astype(np.float32)
+			if args.use_tensorflow:
+				angle = model.predict(img)[0]
+			else:
+				logging.warning("L bozo ur not using tflite. Using H5 instead...")
+				angle = model.predict(img)[0]
+				"""interpreter.set_tensor(input_index, img)
+				interpreter.invoke()
+				angle = interpreter.get_tensor(output_index)[0][0]"""
+
+			degree = rad2deg(angle)
+			if degree <= -args.turnthresh:
+				actuator.left()
+				print ("left (%d) by CPU" % (degree))
+			elif degree < args.turnthresh and degree > -args.turnthresh:
+				actuator.center()
+				print ("center (%d) by CPU" % (degree))
+			elif degree >= args.turnthresh:
+				actuator.right()
+				print ("right (%d) by CPU" % (degree))
+
+		dur = time.time() - ts
+		if dur > period:
+			print("%.3f: took %d ms - deadline miss."
+			% (ts - start_ts, int(dur * 1000)))
 		else:
-			logging.warning("L bozo ur not using tflite. Using H5 instead...")
-			angle = model.predict(img)[0]
-			"""interpreter.set_tensor(input_index, img)
-			interpreter.invoke()
-			angle = interpreter.get_tensor(output_index)[0][0]"""
+			print("%.3f: took %d ms" % (ts - start_ts, int(dur * 1000)))
 
-		degree = rad2deg(angle)
-		if degree <= -args.turnthresh:
-			actuator.left()
-			print ("left (%d) by CPU" % (degree))
-		elif degree < args.turnthresh and degree > -args.turnthresh:
-			actuator.center()
-			print ("center (%d) by CPU" % (degree))
-		elif degree >= args.turnthresh:
-			actuator.right()
-			print ("right (%d) by CPU" % (degree))
+		if RECORD_DATA == True and frame_id == 0:
+			# create files for data recording
+			keyfile = open(params.rec_csv_file, 'w+')
+			keyfile.write("ts,frame,wheel\n") # ts (ms)
+			try:
+				fourcc = cv2.cv.CV_FOURCC(*'XVID')
+			except AttributeError as e:
+				fourcc = cv2.VideoWriter_fourcc(*'XVID')
+				vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, CAMERA_FPS, CAMERA_RESOLUTION)
 
-	dur = time.time() - ts
-	if dur > period:
-		print("%.3f: took %d ms - deadline miss."
-		% (ts - start_ts, int(dur * 1000)))
-	else:
-		print("%.3f: took %d ms" % (ts - start_ts, int(dur * 1000)))
+		if RECORD_DATA == True and frame is not None:
+			# increase frame_id
+			frame_id += 1
 
-	if RECORD_DATA == True and frame_id == 0:
-		# create files for data recording
-		keyfile = open(params.rec_csv_file, 'w+')
-		keyfile.write("ts,frame,wheel\n") # ts (ms)
-		try:
-			fourcc = cv2.cv.CV_FOURCC(*'XVID')
-		except AttributeError as e:
-			fourcc = cv2.VideoWriter_fourcc(*'XVID')
-			vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, CAMERA_FPS, CAMERA_RESOLUTION)
+			# write input (angle)
+			str = "{},{},{}\n".format(int(ts*1000), frame_id, angle)
+			keyfile.write(str)
 
-	if RECORD_DATA == True and frame is not None:
-		# increase frame_id
-		frame_id += 1
-
-		# write input (angle)
-		str = "{},{},{}\n".format(int(ts*1000), frame_id, angle)
-		keyfile.write(str)
-
-		if USE_NETWORK and FPV_VIDEO:
-			textColor = (255,255,255)
-			bgColor = (0,0,0)
-			newImage = Image.new('RGBA', (100, 20), bgColor)
-			drawer = ImageDraw.Draw(newImage)
-			drawer.text((0, 0), "Frame #{}".format(frame_id), fill=textColor)
-			drawer.text((0, 10), "Angle:{}".format(angle), fill=textColor)
-			newImage = cv2.cvtColor(np.array(newImage), cv2.COLOR_BGR2RGBA)
-			frame = overlay_image(frame, newImage, x_offset = 0, y_offset = 0)
-			# write video stream
-			vidfile.write(frame)
-			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
-			#cv2.imwrite(img_name, frame)
-			if frame_id >= 1000:
-				print ("recorded 1000 frames")
-				break
-			print ("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+			if USE_NETWORK and FPV_VIDEO:
+				textColor = (255,255,255)
+				bgColor = (0,0,0)
+				newImage = Image.new('RGBA', (100, 20), bgColor)
+				drawer = ImageDraw.Draw(newImage)
+				drawer.text((0, 0), "Frame #{}".format(frame_id), fill=textColor)
+				drawer.text((0, 10), "Angle:{}".format(angle), fill=textColor)
+				newImage = cv2.cvtColor(np.array(newImage), cv2.COLOR_BGR2RGBA)
+				frame = overlay_image(frame, newImage, x_offset = 0, y_offset = 0)
+				# write video stream
+				vidfile.write(frame)
+				#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
+				#cv2.imwrite(img_name, frame)
+				if frame_id >= 1000:
+					print ("recorded 1000 frames")
+					break
+				print ("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+	
+	except KeyboardInterrupt:
+		break
 
 print("Finish!")
 turn_off()

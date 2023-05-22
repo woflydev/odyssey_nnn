@@ -53,7 +53,7 @@ def read_frame():
 
 def stop():
 	global use_thread
-	print ("Close the camera.")
+	print("Close the camera.")
 	use_thread = False
 
 if __name__ == "__main__":
