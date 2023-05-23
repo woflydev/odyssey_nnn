@@ -44,7 +44,7 @@ RECORD_DATA = False
 #---------------------#
 # Network Config 			#
 #---------------------#
-USE_NETWORK = False
+USE_CNN = True
 FPV_VIDEO = False # only works if USE_NETWORK is true
 
 #---------------------#
@@ -62,7 +62,7 @@ def deg2rad(deg):
 def rad2deg(rad):
 	return 180.0 * rad / math.pi
 
-def starup_signal(iterations, delay):
+def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
 	for i in range(iterations):
 		try:
@@ -96,8 +96,8 @@ def crop_image(img):
 	scaled_img = cv2.resize(img, (max(int(params.img_height * 4 / 3), params.img_width), params.img_height))
 	fb_h, fb_w, fb_c = scaled_img.shape
 	# print(scaled_img.shape)
-	startx = int((fb_w - params.img_width) / 2);
-	starty = int((fb_h - params.img_height) / 2);
+	startx = int((fb_w - params.img_width) / 2)
+	starty = int((fb_h - params.img_height) / 2)
 	return scaled_img[starty:starty+params.img_height, startx:startx+params.img_width,:]
 
 def preprocess(img):
@@ -126,6 +126,7 @@ def overlay_image(l_img, s_img, x_offset, y_offset):
 		x_offset:x_offset+s_img.shape[1], c] * (1.0 - s_img[:,:,3]/255.0))
 		return l_img
 
+# takes in value of -90 to 90, with 0 being straight
 def angle_to_thrust(speed, theta):
 	try:
 		theta = ((theta + 180) % 360) - 180  # normalize value to [-180, 180)
@@ -135,7 +136,7 @@ def angle_to_thrust(speed, theta):
 		if theta < -90: return -v_b, -v_a
 		if theta < 0:   return -v_a, v_b
 		if theta < 90:  return v_b, v_a
-		return [v_a, -v_b]
+		return int([v_a, -v_b])
 	except:
 			logging.error("Couldn't calculate steering angle!")
 
@@ -144,19 +145,19 @@ def angle_to_thrust(speed, theta):
 ##########################################################
 
 parser = argparse.ArgumentParser(description='Odyssey NNN Main Program')
-parser.add_argument("-d", "--dnn", help="Enable DNN", action="store_true")
+parser.add_argument("-c", "--cnn", help="Enable CNN", action="store_true")
 parser.add_argument("-t", "--throttle", help="throttle percent. [0-100]%", type=int, default=50)
 parser.add_argument("--turnthresh", help="throttle percent. [0-30]degree", type=int, default=10)
 parser.add_argument("-n", "--ncpu", help="number of cores to use.", type=int, default=2)
 parser.add_argument("-f", "--hz", help="control frequnecy", type=int)
 parser.add_argument("--fpvvideo", help="Take FPV video of DNN driving", action="store_true")
-parser.add_argument("--use_tensorflow", help="use the full tensorflow instead of tflite", action="store_true")
+parser.add_argument("--tflite", help="use TFLite instead of H5 model.", action="store_true")
 parser.add_argument("--pre", help="preprocessing [resize|crop]", type=str, default="resize")
 args = parser.parse_args()
 
-if args.dnn:
-	print("DNN is on!")
-	USE_NETWORK = True
+if args.cnn:
+	print("Neural network is on!")
+	USE_CNN = True
 if args.throttle:
 	print ("throttle = %d pct" % (args.throttle))
 if args.turnthresh:
@@ -167,24 +168,24 @@ if args.hz:
 	print("new period: ", period)
 if args.fpvvideo:
 	FPV_VIDEO = True
-	print("FPV video of DNN driving is on")
+	print("FPV video of CNN driving is on")
 
 print ("preprocessing:", args.pre)
 
 ##########################################################
-# import car's DNN model
+# import car's CNN model
 ##########################################################
 print ("Loading model: " + params.model_file)
 
-print("use_tensorflow:", args.use_tensorflow)
-if args.use_tensorflow:
+print("Using Tensorflow: ", not args.tflite)
+if args.tflite:
+	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
 	from tensorflow import keras
 	model = keras.models.load_model(params.model_file+'.h5')
 else:
-	logging.warning("L bozo ur not using tflite. Using H5 instead...")
 	from tensorflow import keras
 	model = keras.models.load_model(params.model_file+'.h5')
-	
+
 	"""try:
 			# Import TFLite interpreter from tflite_runtime package if it's available.
 			from tflite_runtime.interpreter import Interpreter
@@ -215,9 +216,12 @@ frame_arr = []
 angle_arr = []
 
 # startup signal
-starup_signal(1, 0.2)
+startup_signal(1, 0.02)
 
-	# enter main loop
+current_angle = 0
+current_speed = BASE_SPEED
+
+# enter main loop
 while True:
 	try:
 		if USE_THREADING:
@@ -232,33 +236,37 @@ while True:
 		# receive input (must be non blocking)
 		ch = "0030" #inputdev.read_single_event()
 
-		current_angle = 90
-
 		if ch == ord('a'): # left
-			angle = deg2rad(-30)
-			move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
+			current_angle -= 0.5 if angle < -90 else 0
+			#angle = deg2rad(-30)
+			#move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
 			#actuator.left()
 			print ("left")
 		elif ch == ord('k'): # center
-			angle = deg2rad(0)
+			current_angle = 0
+			#angle = deg2rad(0)
 			#actuator.center()
 			print("center")
 		elif ch == ord('d'): # right
-			angle = deg2rad(30)
+			current_angle += 0.5 if angle < 90 else 0
+			#angle = deg2rad(30)
 			#actuator.right()
-			move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
+			#move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
 			print("right")
-		elif ch == ord('a'):
+		elif ch == ord('w'):
+			current_speed += 1 if current_speed < 100 else 0
 			#actuator.ffw()
-			move(BASE_SPEED, BASE_SPEED)
+			#move(BASE_SPEED, BASE_SPEED)
 			print("forward")
 		elif ch == ord('/'):
+			current_speed = 0
 			#actuator.stop()
-			off()
+			#off()
 			print ("stop")
 		elif ch == ord('s'):
+			current_speed -= 1 if current_speed > 0 else 0
 			#actuator.rew()
-			move(-BASE_SPEED, -BASE_SPEED)
+			#move(-BASE_SPEED, -BASE_SPEED)
 			print("reverse")
 		elif ch == ord('r'):
 			print ("toggle record mode")
@@ -268,32 +276,42 @@ while True:
 			VIDEO_FEED = not VIDEO_FEED
 		elif ch == ord('n'):
 			print ("toggle DNN mode")
-			USE_NETWORK = not USE_NETWORK
+			USE_CNN = not USE_CNN
 		elif ch == ord('q'):
 			break
-		elif USE_NETWORK == True:
+		elif USE_CNN == True:
 			# 1. machine input
 			img = preprocess(frame)
 			img = np.expand_dims(img, axis=0).astype(np.float32)
-			if args.use_tensorflow:
-				angle = model.predict(img)[0]
-			else:
-				logging.warning("L bozo ur not using tflite. Using H5 instead...")
-				angle = model.predict(img)[0]
+			if args.tflite:
 				"""interpreter.set_tensor(input_index, img)
 				interpreter.invoke()
 				angle = interpreter.get_tensor(output_index)[0][0]"""
+				#angle = model.predict(img)[0]
+				current_angle = model.predict(img)[0]
+			else:
+				#angle = model.predict(img)[0]
+				current_angle = model.predict(img)[0]
 
 			degree = rad2deg(angle)
-			if degree <= -args.turnthresh:
-				actuator.left()
+			
+			pwm = angle_to_thrust(current_speed, current_angle)
+			pwm_left = int(pwm[0])
+			pwm_right = int(pwm[1])
+			
+			print(f"current_angle: {current_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
+			
+			move((pwm_left), (pwm_right))
+			
+			"""if degree <= -args.turnthresh:
+				#actuator.left()
 				print ("left (%d) by CPU" % (degree))
 			elif degree < args.turnthresh and degree > -args.turnthresh:
-				actuator.center()
+				#actuator.center()
 				print ("center (%d) by CPU" % (degree))
 			elif degree >= args.turnthresh:
-				actuator.right()
-				print ("right (%d) by CPU" % (degree))
+				#actuator.right()
+				print ("right (%d) by CPU" % (degree))"""
 
 		dur = time.time() - ts
 		if dur > period:
@@ -320,7 +338,7 @@ while True:
 			str = "{},{},{}\n".format(int(ts*1000), frame_id, angle)
 			keyfile.write(str)
 
-			if USE_NETWORK and FPV_VIDEO:
+			if USE_CNN and FPV_VIDEO:
 				textColor = (255,255,255)
 				bgColor = (0,0,0)
 				newImage = Image.new('RGBA', (100, 20), bgColor)
