@@ -31,7 +31,7 @@ BASE_SPEED = 40
 #---------------------#
 CAMERA_FPS = 30
 CAMERA_RESOLUTION = (320, 240)
-VIDEO_FEED = True
+VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = False
 
@@ -172,11 +172,11 @@ print("CNN Model:", params.model_file, "\n")
 ##########################################################
 if args.tflite:
 	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
-	from tensorflow import keras
-	model = keras.models.load_model(params.model_file+'.h5')
+	import tensorflow.keras as ks
+	model = ks.models.load_model(params.model_file+'.h5')
 else:
-	from tensorflow import keras
-	model = keras.models.load_model(params.model_file+'.h5')
+	import tensorflow.keras as ks
+	model = ks.models.load_model(params.model_file+'.h5')
 
 	"""try:
 			# Import TFLite interpreter from tflite_runtime package if it's available.
