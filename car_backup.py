@@ -1,5 +1,7 @@
 #!/usr/bin/python
+import os
 import time
+import atexit
 import cv2
 import math
 import numpy as np
@@ -20,6 +22,10 @@ from PIL import Image, ImageDraw
 ##########################################################
 camera = import_module(params.camera)
 inputdev = import_module(params.inputdev)
+
+#camera = __import__(params.camera) # this doesnt work with directories
+#actuator = __import__(params.actuator)
+
 
 ##########################################################
 # global variable initialization
@@ -47,11 +53,6 @@ FPV_VIDEO = False # only works if USE_NETWORK is true
 frame_id = 0
 angle = 0.0
 period = 0.05 # sec (=50ms)
-
-#---------------------#
-# Console Logging			#
-#---------------------#
-logging.basicConfig(level=logging.INFO)
 
 ##########################################################
 # local functions
@@ -137,7 +138,7 @@ def angle_to_thrust(speed, theta):
 		if theta < 90:  return v_b, v_a
 		return int([v_a, -v_b])
 	except:
-			logging.error("Couldn't calculate steering PWM!")
+			logging.error("Couldn't calculate steering angle!")
 
 ##########################################################
 # program begins
@@ -145,6 +146,8 @@ def angle_to_thrust(speed, theta):
 
 parser = argparse.ArgumentParser(description='Odyssey NNN Main Program')
 parser.add_argument("-c", "--cnn", help="Enable CNN", action="store_true")
+#parser.add_argument("-t", "--throttle", help="throttle percent. [0-100]%", type=int, default=50)
+#parser.add_argument("--turnthresh", help="Throttle percent. [0-30]degree", type=int, default=10)
 parser.add_argument("-n", "--ncpu", help="Number of cores to use.", type=int, default=2)
 parser.add_argument("-f", "--hz", help="Control frequnecy", type=int)
 parser.add_argument("--fpvvideo", help="Take FPV video of DNN driving", action="store_true")
@@ -153,23 +156,28 @@ parser.add_argument("--pre", help="Preprocessing [resize|crop]", type=str, defau
 args = parser.parse_args()
 
 if args.cnn:
-	print("CNN Driver is enabled through flags!")
+	print("CNN Driver is enabled!")
 	USE_CNN = True
+#if args.throttle:
+	#print("throttle = %d pct" % (args.throttle))
+#if args.turnthresh:
+	#args.turnthresh = args.turnthresh
+	#print ("turn angle threshold = %d degree\n" % (args.turnthresh))
 if args.hz:
-	period = 1.0 / args.hz
+	period = 1.0/args.hz
 	print("New Period: ", period)
 if args.fpvvideo:
 	FPV_VIDEO = True
-	print("FPV video is enabled through flags!")
+	print("FPV video of CNN driving is on")
 
-print("Preprocessing:", args.pre)
-print("Tensorflow:", not args.tflite)
-print("Performance:", args.ncpu, "cores")
-print("CNN Model:", params.model_file, "\n")
+print("Preprocessing Functions:", args.pre)
 
 ##########################################################
 # import car's CNN model
 ##########################################################
+print ("Loading CNN model from:" + params.model_file)
+print("Using Tensorflow:", not args.tflite)
+
 if args.tflite:
 	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
 	from tensorflow import keras
@@ -280,10 +288,10 @@ while True:
 				interpreter.invoke()
 				angle = interpreter.get_tensor(output_index)[0][0]"""
 				#angle = model.predict(img)[0]
-				current_angle = model.predict(img, verbose=0)[0]
+				current_angle = model.predict(img, verbose=None)[0]
 			else:
 				#angle = model.predict(img)[0]
-				current_angle = model.predict(img, verbose=0)[0]
+				current_angle = model.predict(img, verbose=None)[0]
 
 			degree = rad2deg(angle)
 			
@@ -307,11 +315,10 @@ while True:
 
 		dur = time.time() - ts
 		if dur > period:
-			#print("%.3f: took %d ms - deadline miss." % (ts - start_ts, int(dur * 1000)))
-			pass
+			print("%.3f: took %d ms - deadline miss."
+			% (ts - start_ts, int(dur * 1000)))
 		else:
-			pass
-			#print("%.3f: took %d ms" % (ts - start_ts, int(dur * 1000)))
+			print("%.3f: took %d ms" % (ts - start_ts, int(dur * 1000)))
 
 		if RECORD_DATA == True and frame_id == 0:
 			# create files for data recording
@@ -347,7 +354,7 @@ while True:
 				if frame_id >= 1000:
 					print ("recorded 1000 frames")
 					break
-				print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+				print ("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
 	
 	except KeyboardInterrupt:
 		break

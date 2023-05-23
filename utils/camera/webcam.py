@@ -33,7 +33,7 @@ def init(res=(320, 240), fps=30, threading=True):
 	if need_flip == True:
 		logging.info("Initializing camera flip...")
 
-	logging.info("All camera systems go!")
+	logging.info("All camera systems go!\n")
 
 def __update():
 	global frame
@@ -43,9 +43,8 @@ def __update():
 			frame = cv2.flip(tmp_frame, -1)
 		else:
 			frame = tmp_frame
-	logging.info("Camera thread finished!")
+	logging.info("Camera thread finished gracefully!")
 	cap.release()
-	logging.info("Camera systems completed a graceful shutdown.")
 
 def read_frame():
 	global frame
@@ -59,7 +58,6 @@ def stop():
 	global use_thread
 	logging.info("Closing the video feed...")
 	use_thread = False
-	logging.warning("Abrupt camera shutdown!")
 
 if __name__ == "__main__":
 	logging.basicConfig(level=logging.INFO)

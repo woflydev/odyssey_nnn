@@ -11,12 +11,13 @@ MAX_SPEED = MAP_CONST * 100 / 65535  # (percent) max speed of motors
 # but the PCA9685 will only actually give 12 bits of resolution.
 # 65535 is the maximum value.
 
-print("WARNING: USING EMULATED MOTOR DRIVER! \n path: utils\motor_lib\driver.py \n PWM frequency: " + str(PWM_FREQ) + "Hz \n Max speed: " + str(MAX_SPEED) + "%")
+print("\nWARNING: USING EMULATED MOTOR DRIVER! \n path: utils\motor_lib\driver.py \n PWM frequency: " + str(PWM_FREQ) + "Hz \n Max speed: " + str(MAX_SPEED) + "%")
 
 # Path: utils\motor_lib\driver.py
 # off/coast/stop are the same
 def off():
-    print("Motors off!")
+    pass
+    #print("Motors off!")
 
 def stop():
     off()
@@ -52,7 +53,7 @@ def turn(speed: float, radius: float, timeout=0):
 def move(LIN, RIN, timeout=0):
     LIN = round(LIN / 5) * 5
     RIN = round(RIN / 5) * 5
-    print("Writing motor values as: %d, %d" % (LIN, RIN))
+    #print("Writing motor values as: %d, %d" % (LIN, RIN))
     L = int(LIN * MAP_CONST)  # map values to 0-65535
     R = int(RIN * MAP_CONST)
     #print(L, R)

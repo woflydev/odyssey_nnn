@@ -6,7 +6,7 @@ try:
     import termios
     import fcntl
 except ImportError:
-    print("WARNING: Keyboard input only runs on Linux!")
+    print("\nWARNING: Keyboard input only runs on Linux!\n")
     pass
 
 import sys, os
