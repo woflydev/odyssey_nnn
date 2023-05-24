@@ -12,7 +12,7 @@ import utils.camera.webcam as camera
 # Camera Config       #
 #---------------------#
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (1280, 720) #width then height
+CAMERA_RESOLUTION = (640, 360) #width then height
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
