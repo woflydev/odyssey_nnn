@@ -15,7 +15,12 @@ def init(res=(320, 240), fps=30, threading=True):
 	logging.info("Camera systems initializing...")
 	global cap, use_thread, frame, cam_thr
 
-	cap = cv2.VideoCapture("/dev/video0")
+	cap = cv2.VideoCapture("data/video/campusData.mp4")
+
+	width = cap.get(3)
+	height = cap.get(4)
+
+	print('width, height:', width, height)
 
 	cap.set(3, res[0]) # width
 	cap.set(4, res[1]) # height
@@ -62,8 +67,14 @@ def stop():
 if __name__ == "__main__":
 	logging.basicConfig(level=logging.INFO)
 	init()
+
+	fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+	out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (720,1280))
+
 	while True:
 		frame = read_frame()
+		
+		out.write(frame)
 		cv2.imwrite('webcam.test.png', frame)
 		ch = cv2.waitKey(1) & 0xFF
 		if ch == ord('q'):

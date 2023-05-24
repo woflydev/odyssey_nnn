@@ -24,7 +24,7 @@ inputdev = import_module(params.inputdev)
 ##########################################################
 # global variable initialization
 ##########################################################
-BASE_SPEED = 40
+MAX_SPEED = 90
 
 #---------------------#
 # Camera Config 			#
@@ -38,7 +38,7 @@ RECORD_DATA = False
 #---------------------#
 # Network Config 			#
 #---------------------#
-USE_CNN = True
+USE_CNN = False
 FPV_VIDEO = False # only works if USE_NETWORK is true
 
 #---------------------#
@@ -208,16 +208,17 @@ frame_arr = []
 angle_arr = []
 
 # startup signal
-startup_signal(1, 0.02)
+startup_signal(1, 0.1)
 
 current_angle = 0
-current_speed = BASE_SPEED
+current_speed = 0
 
 # enter main loop
 while True:
 	try:
 		if USE_THREADING:
 			time.sleep(next(g))
+
 		frame = camera.read_frame()
 		ts = time.time()
 
@@ -226,40 +227,46 @@ while True:
 			cv2.waitKey(1) & 0xFF
 
 		# receive input (must be non blocking)
-		ch = "0030" #inputdev.read_single_event()
+		# ch = "0030" #inputdev.read_single_event()
+		ch = inputdev.read_single_event()
 
 		if ch == ord('a'): # left
-			current_angle -= 0.5 if angle < -90 else 0
+			current_angle -= 6 if angle > -90 else 0
 			#angle = deg2rad(-30)
 			#move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
 			#actuator.left()
 			print ("left")
-		elif ch == ord('k'): # center
+		elif ch == ord('q'): # center
 			current_angle = 0
 			#angle = deg2rad(0)
 			#actuator.center()
 			print("center")
 		elif ch == ord('d'): # right
-			current_angle += 0.5 if angle < 90 else 0
+			current_angle += 6 if angle < 90 else 0
 			#angle = deg2rad(30)
 			#actuator.right()
 			#move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
 			print("right")
 		elif ch == ord('w'):
-			current_speed += 1 if current_speed < 100 else 0
+			current_speed += 10 if current_speed < MAX_SPEED else 0
 			#actuator.ffw()
 			#move(BASE_SPEED, BASE_SPEED)
-			print("forward")
-		elif ch == ord('/'):
+			print("accelerate")
+		elif ch == ord('e'):
 			current_speed = 0
 			#actuator.stop()
 			#off()
 			print ("stop")
 		elif ch == ord('s'):
-			current_speed -= 1 if current_speed > 0 else 0
+			# this doesn't work
+			current_speed -= 10 if current_speed > 0 else 0
 			#actuator.rew()
-			#move(-BASE_SPEED, -BASE_SPEED)
-			print("reverse")
+			#move(-MAX_SPEED, -MAX_SPEED)
+			print("slow")
+		elif ch == ord('1'):
+			drivePin(15, 100)
+		elif ch == ord('2'):
+			drivePin(15, 0)
 		elif ch == ord('r'):
 			print ("toggle record mode")
 			RECORD_DATA = not RECORD_DATA
@@ -269,7 +276,7 @@ while True:
 		elif ch == ord('n'):
 			print ("toggle DNN mode")
 			USE_CNN = not USE_CNN
-		elif ch == ord('q'):
+		elif ch == ord('`'):
 			break
 		elif USE_CNN == True:
 			# 1. machine input
@@ -284,26 +291,30 @@ while True:
 			else:
 				#angle = model.predict(img)[0]
 				current_angle = model.predict(img, verbose=0)[0]
-
 			degree = rad2deg(angle)
-			
+
+		#print(current_speed)
+		#print(current_angle)
+
+		if current_speed != 0:
 			pwm = angle_to_thrust(current_speed, current_angle)
 			pwm_left = int(pwm[0])
 			pwm_right = int(pwm[1])
-			
-			print(f"current_angle: {current_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
-			
 			move((pwm_left), (pwm_right))
+		else:
+			off()
 			
-			"""if degree <= -args.turnthresh:
-				#actuator.left()
-				print ("left (%d) by CPU" % (degree))
-			elif degree < args.turnthresh and degree > -args.turnthresh:
-				#actuator.center()
-				print ("center (%d) by CPU" % (degree))
-			elif degree >= args.turnthresh:
-				#actuator.right()
-				print ("right (%d) by CPU" % (degree))"""
+		#print(f"current_angle: {current_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
+
+		"""if degree <= -args.turnthresh:
+			#actuator.left()
+			print ("left (%d) by CPU" % (degree))
+		elif degree < args.turnthresh and degree > -args.turnthresh:
+			#actuator.center()
+			print ("center (%d) by CPU" % (degree))
+		elif degree >= args.turnthresh:
+			#actuator.right()
+			print ("right (%d) by CPU" % (degree))"""
 
 		dur = time.time() - ts
 		if dur > period:
@@ -340,14 +351,15 @@ while True:
 				drawer.text((0, 10), "Angle:{}".format(angle), fill=textColor)
 				newImage = cv2.cvtColor(np.array(newImage), cv2.COLOR_BGR2RGBA)
 				frame = overlay_image(frame, newImage, x_offset = 0, y_offset = 0)
-				# write video stream
-				vidfile.write(frame)
-				#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
-				#cv2.imwrite(img_name, frame)
-				if frame_id >= 1000:
-					print ("recorded 1000 frames")
-					break
-				print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+
+			# write video stream
+			vidfile.write(frame)
+			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
+			#cv2.imwrite(img_name, frame)
+			if frame_id >= 1000:
+				print ("recorded 1000 frames")
+				break
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
 	
 	except KeyboardInterrupt:
 		break
