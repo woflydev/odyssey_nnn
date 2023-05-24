@@ -29,8 +29,7 @@ period = 0.05 # sec (=50ms)
 logging.basicConfig(level=logging.INFO)
 
 LIMIT = 0.95
-
-camera = import_module(params.camera)
+MAX_SPEED = 80
 
 def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
@@ -46,6 +45,20 @@ def startup_signal(iterations, delay):
 		except:
 			logging.warning("Driver not initialized.")
 
+# takes in value of -90 to 90, with 0 being straight
+def angle_to_thrust(speed, theta):
+	try:
+		theta = ((theta + 180) % 360) - 180  # normalize value to [-180, 180)
+		speed = min(max(0, speed), 100) # normalize value to [0, 100]
+		v_a = speed * (45 - theta % 90) / 45 # falloff of main motor
+		v_b = min(100, 2 * speed + v_a, 2 * speed - v_a) # compensation of other motor
+		if theta < -90: return -v_b, -v_a
+		if theta < 0:   return -v_a, v_b
+		if theta < 90:  return v_b, v_a
+		return int([v_a, -v_b])
+	except:
+			logging.error(f"Couldn't calculate - SPEED: {speed}, ANGLE: {theta}")
+
 ds = pydualsense() 		# open controller
 ds.init() 			# initialize controller
 
@@ -54,22 +67,33 @@ ds.triggerL.setMode(TriggerModes.Rigid)
 ds.triggerR.setMode(TriggerModes.Pulse)
 ds.conType.BT = False 		# set connection type to bluetooth
 
-startup_signal(2, 0.1)
+startup_signal(1, 0.1)
 
-camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
+current_angle = 0
+current_speed = 0
 
-fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, CAMERA_FPS, CAMERA_RESOLUTION)
-
-while True:
-		frame = camera.read_frame()
-		ts = time.time()
-
+try:
+	while True:
 		left = (ds.state.LY / 128 * 100) * LIMIT
 		right = (ds.state.RY / 128 * 100) * LIMIT
 		light = ds.state.L1 * 100 # ds.state.L2 ** 2 / (16384 / 25) # gradual control
 
-		if ds.state.R1 == 1:              # brake with R1
+		if ds.state.triangle == 1:
+			current_speed += 10 if current_speed < MAX_SPEED else 0
+			print("accelerate")
+		elif ds.state.cross == 1:
+			current_speed -= 10 if current_speed > 0 else 0
+			print("decelerate")
+		elif ds.state.circle == 1:
+			current_angle += 6 if current_angle < 90 - 6 else 0
+		elif ds.state.square == 1:
+			current_angle -= 6 if current_angle > -90 + 6 else 0
+
+		pwm = angle_to_thrust(current_speed, current_angle)
+		pwm_left = int(pwm[0])
+		pwm_right = int(pwm[1])
+
+		if ds.state.R1 == 1:   # brake with R1
 				left = 0
 				right = 0
 				print(f'Brake: [{left}, {right}]')
@@ -80,38 +104,30 @@ while True:
 				print(f'Coast: [{left}, {right}]')
 				off()
 
-		if ds.state.cross == 1:            # exit with cross
+		if ds.state.L1 == 1:
+			current_angle = 0
+
+		if ds.state.L2 > 10:
+			current_speed = 0
+			current_angle = 0
+		
+		move(pwm_left, pwm_right)
+
+		"""if ds.state.cross == 1:            # exit with cross
 				left = 0
 				right = 0
 				print(f'[{left}, {right}]')
 				off()
 				print("Stopped.")
-				quit()
-
-		if RECORD_DATA == True and frame_id == 0:
-			# create files for data recording
-			keyfile = open(params.rec_csv_file, 'w+')
-			keyfile.write("ts,frame,wheel\n") # ts (ms)
-
-		if RECORD_DATA == True and frame is not None:
-			# increase frame_id
-			frame_id += 1
-
-			# write input (angle)
-			str = "{},{},{}\n".format(int(ts*1000), frame_id, angle)
-			keyfile.write(str)
-
-			# write video stream
-			vidfile.write(frame)
-
-			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
-			#cv2.imwrite(img_name, frame)
-			if frame_id >= 1000:
-				print ("recorded 1000 frames")
-				camera.stop()
-				break
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+				quit()"""
+		
+		time.sleep(0.05)
 
 		#print(f'[{left}, {right}]')
-		move(-left, -right)
+		#move(-left, -right)
 		#drivePin(15, 0)
+
+except KeyboardInterrupt:
+	off()
+	print("Keyboard Interrupt!")
+	exit()

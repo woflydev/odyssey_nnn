@@ -231,7 +231,7 @@ while True:
 		ch = inputdev.read_single_event()
 
 		if ch == ord('a'): # left
-			current_angle -= 6 if angle > -90 else 0
+			current_angle -= 6 if current_angle > -90 else 0
 			#angle = deg2rad(-30)
 			#move(BASE_SPEED - BASE_SPEED//2, BASE_SPEED)
 			#actuator.left()
@@ -242,7 +242,7 @@ while True:
 			#actuator.center()
 			print("center")
 		elif ch == ord('d'): # right
-			current_angle += 6 if angle < 90 else 0
+			current_angle += 6 if current_angle < 90 else 0
 			#angle = deg2rad(30)
 			#actuator.right()
 			#move(BASE_SPEED, BASE_SPEED - BASE_SPEED//2)
