@@ -14,11 +14,11 @@ frame = None
 # public API
 # init(), read_frame(), stop()
 
-def init(res=(320, 240), fps=30, threading=True):
+def init(res=(640, 360), fps=30, threading=True):
 	logging.info("Camera systems initializing...")
 	global cap, use_thread, frame, cam_thr
 
-	cap = cv2.VideoCapture(VIDEO_FILE)
+	cap = cv2.VideoCapture('video_output.mp4')
 
 	cap.set(3, res[0]) # width
 	cap.set(4, res[1]) # height
@@ -44,12 +44,12 @@ def __update():
 		ret, tmp_frame = cap.read() # blocking read
 		if not ret:
 			logging.error("Couldn't read frame from camera. Did the video finish?")
-			time.sleep(2)
+			#time.sleep(2)
 			continue
-		if need_flip == True:
-			frame = cv2.flip(tmp_frame, -1)
-		else:
-			frame = tmp_frame
+		#if need_flip == True:
+			#frame = cv2.flip(tmp_frame, -1)
+		#else:
+			#frame = tmp_frame
 	logging.info("Camera thread finished gracefully!")
 	cap.release()
 	
@@ -70,7 +70,8 @@ if __name__ == "__main__":
 	init()
 	while True:
 		frame = read_frame()
-		cv2.imshow('frame', frame)
+		print(frame)
+		#cv2.imshow('frame', frame)
 		if cv2.waitKey(10) & 0xFF == ord('q'):
 			stop()
 			break

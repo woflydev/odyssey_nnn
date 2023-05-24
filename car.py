@@ -30,7 +30,7 @@ MAX_SPEED = 90
 # Camera Config 			#
 #---------------------#
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (320, 240)
+CAMERA_RESOLUTION = (640, 360)
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = False
