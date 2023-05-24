@@ -80,37 +80,38 @@ try:
 
 		if ds.state.triangle == 1:
 			current_speed += 10 if current_speed < MAX_SPEED else 0
-			print("accelerate")
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		elif ds.state.cross == 1:
 			current_speed -= 10 if current_speed > 0 else 0
-			print("decelerate")
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		elif ds.state.circle == 1:
-			current_angle += 6 if current_angle < 90 - 6 else 0
+			current_angle += 6 if current_angle < 40 - 6 else 0 # 40 seems to be the optimal turning speed angle
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		elif ds.state.square == 1:
-			current_angle -= 6 if current_angle > -90 + 6 else 0
+			current_angle -= 6 if current_angle > -40 + 6 else 0 # see above
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 
 		pwm = angle_to_thrust(current_speed, current_angle)
 		pwm_left = int(pwm[0])
 		pwm_right = int(pwm[1])
 
-		if ds.state.R1 == 1:   # brake with R1
-				left = 0
-				right = 0
-				print(f'Brake: [{left}, {right}]')
-
-		if ds.state.R2 > 16:              # coast with R2
-				left = 0
-				right = 0
-				print(f'Coast: [{left}, {right}]')
-				off()
-
 		if ds.state.L1 == 1:
 			current_angle = 0
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 
 		if ds.state.L2 > 10:
 			current_speed = 0
 			current_angle = 0
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		
+		if ds.state.DpadUp == 1:
+			drivePin(15, 100)
+			print("Lights on!")
+		
+		if ds.state.DpadDown == 1:
+			drivePin(15, 0)
+			print("Lights off!")
+
 		move(pwm_left, pwm_right)
 
 		"""if ds.state.cross == 1:            # exit with cross
@@ -121,7 +122,18 @@ try:
 				print("Stopped.")
 				quit()"""
 		
-		time.sleep(0.05)
+		"""if ds.state.R1 == 1:   # brake with R1
+				left = 0
+				right = 0
+				print(f'Brake: [{left}, {right}]')
+
+		if ds.state.R2 > 16:              # coast with R2
+				left = 0
+				right = 0
+				print(f'Coast: [{left}, {right}]')
+				off()
+		"""
+		time.sleep(0.1)
 
 		#print(f'[{left}, {right}]')
 		#move(-left, -right)
