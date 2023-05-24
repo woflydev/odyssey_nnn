@@ -127,7 +127,7 @@ try:
 		move(pwm_left, pwm_right)
 
 		# must have delay or the robot receives too many pwm inputs
-		time.sleep(0.1)
+		time.sleep(0.05)
 
 except:
 	off()
