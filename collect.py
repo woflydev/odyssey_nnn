@@ -1,35 +1,37 @@
 from pydualsense import *
 from utils.motor_lib.driver import *
 import params as params
-from importlib import import_module
 import time
 import logging
 import cv2
+import numpy as np
+import utils.camera.webcam as camera
 # requires libhidapi-dev
 
 #---------------------#
-# Camera Config 			#
+# Camera Config       #
 #---------------------#
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (320, 240)
+CAMERA_RESOLUTION = (1280, 720) #width then height
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
 
 #---------------------#
-# System Variables		#
+# System Variables	  #
 #---------------------#
 frame_id = 0
 angle = 0.0
 period = 0.05 # sec (=50ms)
 
 #---------------------#
-# Console Logging			#
+# Console Logging	  #
 #---------------------#
 logging.basicConfig(level=logging.INFO)
 
-LIMIT = 0.95
 MAX_SPEED = 80
+
+camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 
 def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
@@ -45,7 +47,7 @@ def startup_signal(iterations, delay):
 		except:
 			logging.warning("Driver not initialized.")
 
-# takes in value of -90 to 90, with 0 being straight
+# takes in value of -90 to 90, with 0 being straight (unlike sid lol)
 def angle_to_thrust(speed, theta):
 	try:
 		theta = ((theta + 180) % 360) - 180  # normalize value to [-180, 180)
@@ -57,7 +59,7 @@ def angle_to_thrust(speed, theta):
 		if theta < 90:  return v_b, v_a
 		return int([v_a, -v_b])
 	except:
-			logging.error(f"Couldn't calculate - SPEED: {speed}, ANGLE: {theta}")
+		logging.error(f"Couldn't calculate - SPEED: {speed}, ANGLE: {theta}")
 
 ds = pydualsense() 		# open controller
 ds.init() 			# initialize controller
@@ -67,17 +69,27 @@ ds.triggerL.setMode(TriggerModes.Rigid)
 ds.triggerR.setMode(TriggerModes.Pulse)
 ds.conType.BT = False 		# set connection type to bluetooth
 
-startup_signal(1, 0.1)
-
 current_angle = 0
 current_speed = 0
 
+
+#gst_out = f"appsrc ! video/x-raw,format=BGR ! queue ! videoconvert ! video/x-raw,format=BGRx ! nvvidconv ! omxh264enc ! h264parse ! qtmux ! filesink location=video_output.mp4"
+#out = cv2.VideoWriter(gst_out, cv2.CAP_GSTREAMER, CAMERA_FPS, CAMERA_RESOLUTION)
+
+# WITH THIS (0x7634706d / mp4v) 
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+# THIS WORKS 
+out = cv2.VideoWriter("video_output.mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
+
+startup_signal(1, 0.1)
+
 try:
 	while True:
-		left = (ds.state.LY / 128 * 100) * LIMIT
-		right = (ds.state.RY / 128 * 100) * LIMIT
-		light = ds.state.L1 * 100 # ds.state.L2 ** 2 / (16384 / 25) # gradual control
+		frame = camera.read_frame()
+		cv2.imwrite("webcam.test.png", frame)
+		out.write(frame)
 
+		# ----- MOTORS ----- #  
 		if ds.state.triangle == 1:
 			current_speed += 10 if current_speed < MAX_SPEED else 0
 			print(f"Speed: {current_speed}, Angle: {current_angle}")
@@ -114,13 +126,11 @@ try:
 
 		move(pwm_left, pwm_right)
 
+		# must have delay or the robot receives too many pwm inputs
 		time.sleep(0.1)
 
-		#print(f'[{left}, {right}]')
-		#move(-left, -right)
-		#drivePin(15, 0)
-
-except KeyboardInterrupt:
+except:
 	off()
-	print("Keyboard Interrupt!")
-	exit()
+	camera.stop()
+	print("Interrupt! Immediate motor cutoff engaged!")
+	exit(0)

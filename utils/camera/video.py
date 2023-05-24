@@ -3,7 +3,8 @@ from threading import Thread,Lock
 import time
 import logging
 
-VIDEO_FILE = "data/video/campusData.mp4"
+#VIDEO_FILE = "data/video/campusData.mp4"
+VIDEO_FILE = "video_output.mp4"
 
 use_thread = False
 need_flip = False
