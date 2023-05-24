@@ -17,6 +17,8 @@ VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
 
+MAX_SPEED = 80
+
 #---------------------#
 # System Variables	  #
 #---------------------#
@@ -28,8 +30,6 @@ period = 0.05 # sec (=50ms)
 # Console Logging	  #
 #---------------------#
 logging.basicConfig(level=logging.INFO)
-
-MAX_SPEED = 80
 
 camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 
@@ -85,6 +85,7 @@ startup_signal(1, 0.1)
 
 try:
 	while True:
+		ts = time.time()
 		frame = camera.read_frame()
 		cv2.imwrite("webcam.test.png", frame)
 		out.write(frame)
@@ -128,6 +129,31 @@ try:
 
 		# must have delay or the robot receives too many pwm inputs
 		time.sleep(0.05)
+
+		if RECORD_DATA == True and frame_id == 0:
+			# create files for data recording
+			keyfile = open(params.rec_csv_file, 'w+')
+			keyfile.write("ts,frame,wheel\n") # ts (ms)
+
+			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+			vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
+
+		if RECORD_DATA == True and frame is not None:
+			# increase frame_id
+			frame_id += 1
+
+			# write input (angle)
+			str = "{},{},{}\n".format(int(ts * 1000), frame_id, angle)
+			keyfile.write(str)
+
+			# write video stream
+			vidfile.write(frame)
+			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
+			#cv2.imwrite(img_name, frame)
+			if frame_id >= 1000:
+				print ("recorded 1000 frames")
+				break
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
 
 except:
 	off()
