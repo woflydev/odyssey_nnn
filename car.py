@@ -11,6 +11,8 @@ import logging
 from PIL import Image, ImageDraw
 from importlib import import_module
 
+# try converting to radians
+
 try:
 	from utils.motor_lib.driver import move, off, drivePin
 	from utils.camera.webcam import *
