@@ -16,6 +16,8 @@ CAMERA_RESOLUTION = (640, 360) #width then height
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
+RECORD_DATA = False
+MAX_SPEED = 80
 
 #---------------------#
 # System Variables	  #
@@ -28,8 +30,6 @@ period = 0.05 # sec (=50ms)
 # Console Logging	  #
 #---------------------#
 logging.basicConfig(level=logging.INFO)
-
-MAX_SPEED = 80
 
 camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 
@@ -81,13 +81,15 @@ fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 # THIS WORKS 
 out = cv2.VideoWriter("video_output.mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
 
-startup_signal(1, 0.1)
+startup_signal(4, 0.1)
 
 try:
 	while True:
 		frame = camera.read_frame()
-		cv2.imwrite("webcam.test.png", frame)
-		out.write(frame)
+		#cv2.imwrite("webcam.test.png", frame)
+		
+		if RECORD_DATA:
+			out.write(frame)
 
 		# ----- MOTORS ----- #  
 		if ds.state.triangle == 1:
@@ -97,10 +99,10 @@ try:
 			current_speed -= 10 if current_speed > 0 else 0
 			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		elif ds.state.circle == 1:
-			current_angle += 6 if current_angle < 40 - 6 else 0 # 40 seems to be the optimal turning speed angle
+			current_angle += 3 if current_angle < 40 - 3 else 0 # 40 seems to be the optimal turning speed angle
 			print(f"Speed: {current_speed}, Angle: {current_angle}")
 		elif ds.state.square == 1:
-			current_angle -= 6 if current_angle > -40 + 6 else 0 # see above
+			current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
 			print(f"Speed: {current_speed}, Angle: {current_angle}")
 
 		pwm = angle_to_thrust(current_speed, current_angle)
@@ -123,11 +125,16 @@ try:
 		if ds.state.DpadDown == 1:
 			drivePin(15, 0)
 			print("Lights off!")
+		
+		if ds.state.DpadLeft == 1:
+			RECORD_DATA = True
+		if ds.state.DpadRight == 1:
+			RECORD_DATA = False
 
 		move(pwm_left, pwm_right)
 
 		# must have delay or the robot receives too many pwm inputs
-		time.sleep(0.05)
+		time.sleep(0.08)
 
 except:
 	off()
