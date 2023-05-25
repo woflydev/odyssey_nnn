@@ -6,9 +6,10 @@ import socketserver
 from threading import Condition
 from threading import Thread
 from http import server
+import params as params
 import time
 
-camera = import_module("webcam_pc")
+camera = import_module(params.camera)
 
 
 PAGE="""\
@@ -177,7 +178,6 @@ PAGE="""\
 
 """
 
-
 class StreamingHandler(server.BaseHTTPRequestHandler):
 		def do_GET(self):
 				if self.path == '/':
@@ -221,6 +221,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 		daemon_threads = True
 
 def start_streaming():
+	camera.init()
 	address = ('', 8000)
 	server = StreamingServer(address, StreamingHandler)
 	server.serve_forever()

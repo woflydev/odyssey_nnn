@@ -6,6 +6,7 @@ import logging
 import cv2
 import numpy as np
 import utils.camera.webcam as camera
+import utils.camera.stream as stream
 # requires libhidapi-dev
 
 #---------------------#
@@ -97,7 +98,7 @@ try:
 	while True:
 		ts = time.time()
 		frame = camera.read_frame()
-		#cv2.imwrite("webcam.test.png", frame)
+		cv2.imwrite("webcam.test.png", frame)
 
 		# ----- MOTORS ----- #  
 		# if ds.state.triangle == 1:
@@ -151,7 +152,7 @@ try:
 			RECORD_DATA = False
 
 		# must have delay or the robot receives too many pwm inputs
-		time.sleep(0.08)
+		#time.sleep(0.08)
 
 		if RECORD_DATA == True and frame_id == 0:
 			# create files for data recording
@@ -166,7 +167,7 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			str = "{},{},{}\n".format(int(ts * 1000), frame_id, angle)
+			str = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
 			keyfile.write(str)
 
 			# write video stream
@@ -177,7 +178,7 @@ try:
 				print (f"recorded {MAX_FRAMES} frames")
 				break
 
-			#print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts)*1000)))
 
 except:
 	turn_off()
