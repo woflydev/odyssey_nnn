@@ -5,6 +5,7 @@ import time
 import logging
 import cv2
 import numpy as np
+import random
 import utils.camera.webcam as camera
 import utils.camera.stream as stream
 # requires libhidapi-dev
@@ -149,18 +150,20 @@ try:
 			RECORD_DATA = True
 		if ds.state.DpadRight == 1:
 			ds.light.setColorI(255, 255, 255)
+			frame_id = 0
 			RECORD_DATA = False
 
 		# must have delay or the robot receives too many pwm inputs
 		#time.sleep(0.08)
 
 		if RECORD_DATA == True and frame_id == 0:
+			identification = str(random.randint(0, 100))
 			# create files for data recording
-			keyfile = open(params.rec_csv_file, 'w+')
+			keyfile = open("data/driving/" + params.rec_csv_file + "-" + identification + ".csv", 'w+')
 			keyfile.write("ts,frame,wheel\n") # ts (ms)
 
 			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-			vidfile = cv2.VideoWriter(params.rec_vid_file, fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
+			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
 
 		if RECORD_DATA == True and frame is not None:
 			# increase frame_id
@@ -178,7 +181,7 @@ try:
 				print (f"recorded {MAX_FRAMES} frames")
 				break
 
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts)*1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts) * 1000)))
 
 except:
 	turn_off()

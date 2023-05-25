@@ -35,5 +35,5 @@ model_file = "data/models/{}-{}x{}x{}".format(model_name[6:], img_width, img_hei
 ##########################################################
 # recording config 
 ##########################################################
-rec_vid_file="out-video.mp4"
-rec_csv_file="out-key.csv"
+rec_vid_file="out-video"
+rec_csv_file="out-key"
