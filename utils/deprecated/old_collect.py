@@ -17,9 +17,7 @@ VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
 RECORD_DATA = False
-MAX_SPEED = 80
-
-MAX_SPEED = 80
+MAX_SPEED = 95
 
 #---------------------#
 # System Variables	  #
@@ -68,7 +66,7 @@ ds.init() 			# initialize controller
 
 ds.light.setColorI(0,255,0) 	# set touchpad color to red
 ds.triggerL.setMode(TriggerModes.Rigid)
-# ds.triggerR.setMode(TriggerModes.Rigid)
+ds.triggerR.setMode(TriggerModes.Pulse)
 ds.conType.BT = False 		# set connection type to bluetooth
 
 current_angle = 0
@@ -90,46 +88,34 @@ try:
 		ts = time.time()
 		frame = camera.read_frame()
 		#cv2.imwrite("webcam.test.png", frame)
-		
-		if RECORD_DATA:
-			out.write(frame)
 
 		# ----- MOTORS ----- #  
-		# if ds.state.triangle == 1:
-		# 	current_speed += 10 if current_speed < MAX_SPEED else 0
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.cross == 1:
-		# 	current_speed -= 10 if current_speed > 0 else 0
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.circle == 1:
-		# 	current_angle += 3 if current_angle < 40 - 3 else 0 # 40 seems to be the optimal turning speed angle
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.square == 1:
-		# 	current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
+		if ds.state.triangle == 1:
+			current_speed += 10 if current_speed < MAX_SPEED else 0
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
+		elif ds.state.cross == 1:
+			current_speed -= 10 if current_speed > 0 else 0
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
+		elif ds.state.circle == 1:
+			current_angle += 3 if current_angle < 40 - 3 else 0 # 40 seems to be the optimal turning speed angle
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
+		elif ds.state.square == 1:
+			current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
 
-		dir = ds.state.LX / 128 * 60
-		if ds.state.R2 > 8:
-			sped = ds.state.R2 / 128 * MAX_SPEED
-		else:
-			sped = 0
-
-		pwm = angle_to_thrust(sped, dir)
+		pwm = angle_to_thrust(current_speed, current_angle)
 		pwm_left = int(pwm[0])
 		pwm_right = int(pwm[1])
 
-		move(pwm_left, pwm_right)
-
 		if ds.state.L1 == 1:
-			sped = 0
-			dir = 0
+			current_angle = 0
 			print(f"Speed: {current_speed}, Angle: {current_angle}")
 
-		# if ds.state.L2 > 10:
-		# 	current_speed = 0
-		# 	current_angle = 0
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-
+		if ds.state.L2 > 10:
+			current_speed = 0
+			current_angle = 0
+			print(f"Speed: {current_speed}, Angle: {current_angle}")
+		
 		if ds.state.DpadUp == 1:
 			drivePin(15, 100)
 			print("Lights on!")
@@ -143,8 +129,10 @@ try:
 		if ds.state.DpadRight == 1:
 			RECORD_DATA = False
 
+		move(pwm_left, pwm_right)
+
 		# must have delay or the robot receives too many pwm inputs
-		time.sleep(0.08)
+		time.sleep(0.07)
 
 		if RECORD_DATA == True and frame_id == 0:
 			# create files for data recording
@@ -159,9 +147,10 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			str = "{},{},{}\n".format(int(ts * 1000), frame_id, angle)
+			str = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
 			keyfile.write(str)
 
+			frame = camera.read_frame()
 			# write video stream
 			vidfile.write(frame)
 			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
@@ -169,7 +158,7 @@ try:
 			if frame_id >= 1000:
 				print ("recorded 1000 frames")
 				break
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts)*1000)))
 
 except:
 	off()
