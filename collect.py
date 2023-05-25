@@ -73,7 +73,7 @@ def turn_off():
 ds = pydualsense() 		# open controller
 ds.init() 			# initialize controller
 
-ds.light.setColorI(0,255,0) 	# set touchpad color to red
+ds.light.setColorI(255, 255, 255)
 ds.triggerL.setMode(TriggerModes.Rigid)
 # ds.triggerR.setMode(TriggerModes.Rigid)
 ds.conType.BT = False 		# set connection type to bluetooth
@@ -144,8 +144,10 @@ try:
 			print("Lights off!")
 		
 		if ds.state.DpadLeft == 1:
+			ds.light.setColorI(255, 165, 0)
 			RECORD_DATA = True
 		if ds.state.DpadRight == 1:
+			ds.light.setColorI(255, 255, 255)
 			RECORD_DATA = False
 
 		# must have delay or the robot receives too many pwm inputs
@@ -179,4 +181,5 @@ try:
 
 except:
 	turn_off()
+	ds.close()
 	exit(0)
