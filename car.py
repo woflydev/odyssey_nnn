@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# THIS FILE IS MAINLY FOR CNN DRIVING. WHILE KEYBOARD DRIVING IS
+# POSSIBLE, IT IS NOT RECOMMENDED DUE TO LAG.
 import time
 import cv2
 import math
@@ -6,6 +8,7 @@ import numpy as np
 import params as params
 import argparse
 import logging
+from PIL import Image, ImageDraw
 from importlib import import_module
 
 try:
@@ -13,7 +16,6 @@ try:
 	from utils.camera.webcam import *
 except:
 	from utils.motor_lib.driver_pc import move, off, drivePin
-from PIL import Image, ImageDraw
 
 ##########################################################
 # import car's sensor/actuator modules
@@ -21,14 +23,10 @@ from PIL import Image, ImageDraw
 camera = import_module(params.camera)
 inputdev = import_module(params.inputdev)
 
-##########################################################
-# global variable initialization
-##########################################################
+#---------------------#
+# Car Config    			#
+#---------------------#
 MAX_SPEED = 90
-
-#---------------------#
-# Camera Config 			#
-#---------------------#
 CAMERA_FPS = 30
 CAMERA_RESOLUTION = (640, 360)
 VIDEO_FEED = False
@@ -36,21 +34,17 @@ USE_THREADING = True
 RECORD_DATA = False
 
 #---------------------#
-# Network Config 			#
+# CNN Config 		    	#
 #---------------------#
 USE_CNN = False
 FPV_VIDEO = False # only works if USE_NETWORK is true
 
 #---------------------#
-# System Variables		#
+# Program Config  		#
 #---------------------#
 frame_id = 0
 angle = 0.0
 period = 0.05 # sec (=50ms)
-
-#---------------------#
-# Console Logging			#
-#---------------------#
 logging.basicConfig(level=logging.INFO)
 
 ##########################################################
@@ -314,7 +308,7 @@ while True:
 			print ("center (%d) by CPU" % (degree))
 		elif degree >= args.turnthresh:
 			#actuator.right()
-			print ("right (%d) by CPU" % (degree))"""
+			print ("right (%d) by CPU" % (degree))
 
 		dur = time.time() - ts
 		if dur > period:
@@ -359,7 +353,7 @@ while True:
 			if frame_id >= 1000:
 				print ("recorded 1000 frames")
 				break
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))"""
 	
 	except KeyboardInterrupt:
 		break
