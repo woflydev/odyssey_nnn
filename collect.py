@@ -19,8 +19,6 @@ RECORD_DATA = True
 RECORD_DATA = False
 MAX_SPEED = 80
 
-MAX_SPEED = 80
-
 #---------------------#
 # System Variables	  #
 #---------------------#
@@ -29,11 +27,9 @@ angle = 0.0
 period = 0.05 # sec (=50ms)
 
 #---------------------#
-# Console Logging	  #
+# Console Logging	    #
 #---------------------#
 logging.basicConfig(level=logging.INFO)
-
-camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 
 def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
@@ -63,6 +59,16 @@ def angle_to_thrust(speed, theta):
 	except:
 		logging.error(f"Couldn't calculate - SPEED: {speed}, ANGLE: {theta}")
 
+# robot shutdown
+def turn_off():
+	off()
+	drivePin(15, 0)
+	if frame_id > 0:
+		keyfile.close()
+		vidfile.release()
+	camera.stop()
+	print("Interrupt! Immediate motor cutoff engaged!")
+
 ds = pydualsense() 		# open controller
 ds.init() 			# initialize controller
 
@@ -74,6 +80,7 @@ ds.conType.BT = False 		# set connection type to bluetooth
 current_angle = 0
 current_speed = 0
 
+camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 
 #gst_out = f"appsrc ! video/x-raw,format=BGR ! queue ! videoconvert ! video/x-raw,format=BGRx ! nvvidconv ! omxh264enc ! h264parse ! qtmux ! filesink location=video_output.mp4"
 #out = cv2.VideoWriter(gst_out, cv2.CAP_GSTREAMER, CAMERA_FPS, CAMERA_RESOLUTION)
@@ -172,7 +179,5 @@ try:
 			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
 
 except:
-	off()
-	camera.stop()
-	print("Interrupt! Immediate motor cutoff engaged!")
+	turn_off()
 	exit(0)
