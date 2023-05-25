@@ -87,9 +87,9 @@ camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
 #out = cv2.VideoWriter(gst_out, cv2.CAP_GSTREAMER, CAMERA_FPS, CAMERA_RESOLUTION)
 
 # WITH THIS (0x7634706d / mp4v) 
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+#fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 # THIS WORKS 
-out = cv2.VideoWriter("video_output.mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
+#out = cv2.VideoWriter("video_output.mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
 
 startup_signal(4, 0.1)
 
