@@ -108,8 +108,8 @@ try:
 		# 	current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
 		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
 
-		dir = ds.state.LX / 128 * 40
-		if ds.state.R2 > 10:
+		dir = ds.state.LX / 128 * 60
+		if ds.state.R2 > 8:
 			sped = ds.state.R2 / 128 * MAX_SPEED
 		else:
 			sped = 0
