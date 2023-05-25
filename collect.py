@@ -131,7 +131,7 @@ try:
 		if ds.state.L1 == 1:
 			sped = 0
 			dir = 0
-			print(f"Speed: {current_speed}, Angle: {current_angle}")
+			print(f"Speed: {current_speed}, Angle: {dir}")
 
 		# if ds.state.L2 > 10:
 		# 	current_speed = 0
@@ -172,7 +172,7 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			info = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
+			info = "{},{},{}\n".format(int(ts * 1000), frame_id, dir)
 			keyfile.write(info)
 
 			# write video stream
@@ -183,7 +183,7 @@ try:
 				print (f"recorded {MAX_FRAMES} frames")
 				break
 
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts) * 1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, dir, int((time.time() - ts) * 1000)))
 
 except KeyboardInterrupt:
 	turn_off()
