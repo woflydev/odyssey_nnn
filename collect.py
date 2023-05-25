@@ -9,7 +9,7 @@ import utils.camera.webcam as camera
 # requires libhidapi-dev
 
 #---------------------#
-# Camera Config       #
+# Robot Config        #
 #---------------------#
 CAMERA_FPS = 30
 CAMERA_RESOLUTION = (640, 360) #width then height
@@ -18,6 +18,7 @@ USE_THREADING = True
 RECORD_DATA = True
 RECORD_DATA = False
 MAX_SPEED = 80
+MAX_FRAMES = 5000
 
 #---------------------#
 # System Variables	  #
@@ -97,9 +98,6 @@ try:
 		ts = time.time()
 		frame = camera.read_frame()
 		#cv2.imwrite("webcam.test.png", frame)
-		
-		if RECORD_DATA:
-			out.write(frame)
 
 		# ----- MOTORS ----- #  
 		# if ds.state.triangle == 1:
@@ -173,10 +171,11 @@ try:
 			vidfile.write(frame)
 			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
 			#cv2.imwrite(img_name, frame)
-			if frame_id >= 1000:
-				print ("recorded 1000 frames")
+			if frame_id >= MAX_FRAMES:
+				print (f"recorded {MAX_FRAMES} frames")
 				break
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+
+			#print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
 
 except:
 	turn_off()
