@@ -90,9 +90,6 @@ try:
 		ts = time.time()
 		frame = camera.read_frame()
 		#cv2.imwrite("webcam.test.png", frame)
-		
-		if RECORD_DATA:
-			out.write(frame)
 
 		# ----- MOTORS ----- #  
 		if ds.state.triangle == 1:
@@ -137,7 +134,7 @@ try:
 		move(pwm_left, pwm_right)
 
 		# must have delay or the robot receives too many pwm inputs
-		time.sleep(0.08)
+		time.sleep(0.07)
 
 		if RECORD_DATA == True and frame_id == 0:
 			# create files for data recording
