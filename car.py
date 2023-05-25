@@ -80,9 +80,6 @@ def turn_off():
 	#actuator.stop()
 	off()
 	drivePin(15, 0)
-	if frame_id > 0:
-		keyfile.close()
-		vidfile.release()
 	camera.stop()
 
 def crop_image(img):
@@ -166,10 +163,12 @@ print("CNN Model:", params.model_file, "\n")
 ##########################################################
 if args.tflite:
 	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
-	import tensorflow.keras as ks
+	#import tensorflow.keras as ks
+	import keras as ks
 	model = ks.models.load_model(params.model_file+'.h5')
 else:
-	import tensorflow.keras as ks
+	#import tensorflow.keras as ks
+	import keras as ks
 	model = ks.models.load_model(params.model_file+'.h5')
 
 	"""try:

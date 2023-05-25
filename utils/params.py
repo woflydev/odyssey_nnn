@@ -3,7 +3,7 @@
 # camera module selection
 #   "camera-webcam" "camera-null"
 ##########################################################
-camera="utils.camera.webcam"
+camera="utils.camera.video"
 
 ##########################################################
 # actuator selection
