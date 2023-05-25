@@ -17,9 +17,7 @@ VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
 RECORD_DATA = False
-MAX_SPEED = 80
-
-MAX_SPEED = 80
+MAX_SPEED = 95
 
 #---------------------#
 # System Variables	  #
@@ -149,9 +147,10 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			str = "{},{},{}\n".format(int(ts * 1000), frame_id, angle)
+			str = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
 			keyfile.write(str)
 
+			frame = camera.read_frame()
 			# write video stream
 			vidfile.write(frame)
 			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
@@ -159,7 +158,7 @@ try:
 			if frame_id >= 1000:
 				print ("recorded 1000 frames")
 				break
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, angle, int((time.time() - ts)*1000)))
+			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts)*1000)))
 
 except:
 	off()
