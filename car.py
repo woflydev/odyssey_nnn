@@ -36,7 +36,7 @@ RECORD_DATA = False
 #---------------------#
 # CNN Config 		    	#
 #---------------------#
-USE_CNN = False
+USE_CNN = True
 FPV_VIDEO = False # only works if USE_NETWORK is true
 
 #---------------------#
@@ -165,11 +165,17 @@ if args.tflite:
 	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
 	#import tensorflow.keras as ks
 	import keras as ks
-	model = ks.models.load_model(params.model_file+'.h5')
+	import tensorflow_model_optimization as tfmot
+	with tfmot.quantization.keras.quantize_scope():
+		model = ks.models.load_model(params.model_file+'.h5')
+	#model = ks.models.load_model(params.model_file+'.h5')
 else:
 	#import tensorflow.keras as ks
 	import keras as ks
-	model = ks.models.load_model(params.model_file+'.h5')
+	import tensorflow_model_optimization as tfmot
+	with tfmot.quantization.keras.quantize_scope():
+		model = ks.models.load_model(params.model_file+'.h5')
+	#model = ks.models.load_model(params.model_file+'.h5')
 
 	"""try:
 			# Import TFLite interpreter from tflite_runtime package if it's available.
@@ -220,8 +226,8 @@ while True:
 			cv2.waitKey(1) & 0xFF
 
 		# receive input (must be non blocking)
-		# ch = "0030" #inputdev.read_single_event()
-		ch = inputdev.read_single_event()
+		ch = "0030" #inputdev.read_single_event()
+		#ch = inputdev.read_single_event()
 
 		if ch == ord('a'): # left
 			current_angle -= 6 if current_angle > -90 else 0
@@ -281,9 +287,11 @@ while True:
 				angle = interpreter.get_tensor(output_index)[0][0]"""
 				#angle = model.predict(img)[0]
 				current_angle = model.predict(img, verbose=0)[0]
+				print(current_angle)
 			else:
 				#angle = model.predict(img)[0]
 				current_angle = model.predict(img, verbose=0)[0]
+				print(current_angle)
 			degree = rad2deg(angle)
 
 		#print(current_speed)
@@ -296,6 +304,8 @@ while True:
 			move((pwm_left), (pwm_right))
 		else:
 			off()
+
+		time.sleep(0.5)
 			
 		#print(f"current_angle: {current_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
 

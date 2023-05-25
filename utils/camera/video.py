@@ -1,5 +1,5 @@
 import cv2
-from threading import Thread,Lock
+from threading import Thread, Lock
 import time
 import logging
 
@@ -44,7 +44,7 @@ def __update():
 		ret, tmp_frame = cap.read() # blocking read
 		if not ret:
 			logging.error("Couldn't read frame from camera. Did the video finish?")
-			#time.sleep(2)
+			time.sleep(2)
 			continue
 		if need_flip == True:
 			frame = cv2.flip(tmp_frame, -1)

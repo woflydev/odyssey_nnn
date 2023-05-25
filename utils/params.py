@@ -3,7 +3,7 @@
 # camera module selection
 #   "camera-webcam" "camera-null"
 ##########################################################
-camera="utils.camera.video"
+camera="utils.camera.webcam_pc"
 
 ##########################################################
 # actuator selection
@@ -30,7 +30,8 @@ img_channels = 3
 #   "model_large"   <-- nvidia dave-2 model
 ##########################################################
 model_name = "model_large"
-model_file = "data/models/{}-{}x{}x{}".format(model_name[6:], img_width, img_height, img_channels)
+#model_file = "data/models/{}-{}x{}x{}".format(model_name[6:], img_width, img_height, img_channels)
+model_file = "data/models/ver1"
 
 ##########################################################
 # recording config 
