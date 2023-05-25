@@ -3,7 +3,7 @@
 # camera module selection
 #   "camera-webcam" "camera-null"
 ##########################################################
-camera="utils.camera.webcam_pc"
+camera="utils.camera.video"
 
 ##########################################################
 # actuator selection
@@ -31,7 +31,7 @@ img_channels = 3
 ##########################################################
 model_name = "model_large"
 #model_file = "data/models/{}-{}x{}x{}".format(model_name[6:], img_width, img_height, img_channels)
-model_file = "data/models/ver1"
+model_file = "data/models/ver2"
 
 ##########################################################
 # recording config 
