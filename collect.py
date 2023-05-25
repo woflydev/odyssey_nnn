@@ -1,6 +1,6 @@
 from pydualsense import *
 from utils.motor_lib.driver import *
-import params as params
+import utils.params as params
 import time
 import logging
 import cv2
@@ -78,12 +78,13 @@ ds.init() 			# initialize controller
 ds.light.setColorI(255, 255, 255)
 ds.triggerL.setMode(TriggerModes.Rigid)
 ds.triggerR.setMode(TriggerModes.Rigid)
-ds.conType.BT = False 		# set connection type to bluetooth
+ds.conType.BT = False # set connection type to bluetooth
 
 current_angle = 0
 current_speed = 0
 
 camera.init(res=CAMERA_RESOLUTION, fps=CAMERA_FPS, threading=USE_THREADING)
+stream.begin_thread()
 
 #gst_out = f"appsrc ! video/x-raw,format=BGR ! queue ! videoconvert ! video/x-raw,format=BGRx ! nvvidconv ! omxh264enc ! h264parse ! qtmux ! filesink location=video_output.mp4"
 #out = cv2.VideoWriter(gst_out, cv2.CAP_GSTREAMER, CAMERA_FPS, CAMERA_RESOLUTION)
@@ -158,6 +159,7 @@ try:
 
 		if RECORD_DATA == True and frame_id == 0:
 			identification = str(random.randint(0, 100))
+			print(f"Starting recording with ID: {identification}")
 			# create files for data recording
 			keyfile = open("data/driving/" + params.rec_csv_file + "-" + identification + ".csv", 'w+')
 			keyfile.write("ts,frame,wheel\n") # ts (ms)
@@ -170,8 +172,8 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			str = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
-			keyfile.write(str)
+			info = "{},{},{}\n".format(int(ts * 1000), frame_id, current_angle)
+			keyfile.write(info)
 
 			# write video stream
 			vidfile.write(frame)
@@ -183,7 +185,7 @@ try:
 
 			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, current_angle, int((time.time() - ts) * 1000)))
 
-except:
+except KeyboardInterrupt:
 	turn_off()
 	ds.close()
 	exit(0)

@@ -1,16 +1,18 @@
-import io
 import cv2
-from importlib import import_module
 import logging
 import socketserver
 from threading import Condition
 from threading import Thread
 from http import server
-import params as params
+from importlib import import_module
+import os
+import sys
 import time
 
-camera = import_module(params.camera)
-
+try:
+	import webcam as camera
+except:
+	import utils.camera.webcam as camera
 
 PAGE="""\
 
@@ -221,10 +223,13 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 		daemon_threads = True
 
 def start_streaming():
-	camera.init()
 	address = ('', 8000)
 	server = StreamingServer(address, StreamingHandler)
 	server.serve_forever()
+
+def begin_thread():
+	stream_thread = Thread(target=start_streaming, args=(), daemon=True)
+	stream_thread.start()
 
 if __name__ == "__main__":
 	logging.basicConfig(level=logging.INFO)

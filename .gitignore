@@ -2,6 +2,9 @@
 /*.mp4
 
 /*.test.*
+/*.zip
+
+data/driving/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

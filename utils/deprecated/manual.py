@@ -1,6 +1,6 @@
 from pydualsense import *
 from utils.motor_lib.driver import *
-import params as params
+import utils.params as params
 from importlib import import_module
 import time
 import logging

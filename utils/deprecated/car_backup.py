@@ -5,7 +5,7 @@ import atexit
 import cv2
 import math
 import numpy as np
-import params as params
+import utils.params as params
 import argparse
 import logging
 from importlib import import_module
