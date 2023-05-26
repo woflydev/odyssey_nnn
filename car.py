@@ -30,7 +30,7 @@ inputdev = import_module(params.inputdev)
 #---------------------#
 MAX_SPEED = 90
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (640, 360)
+CAMERA_RESOLUTION = (320, 180)
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = False

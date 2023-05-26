@@ -15,7 +15,7 @@ import utils.camera.stream as stream
 # Robot Config        #
 #---------------------#
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (200, 66) #width then height
+CAMERA_RESOLUTION = (320, 180) #width then height
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
