@@ -175,7 +175,7 @@ try:
 			keyfile.write("ts,frame,wheel\n") # ts (ms)
 
 			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), (200, 66), True)
+			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), (320, 180), True)
 
 		if RECORD_DATA == True and frame is not None:
 			# increase frame_id
