@@ -106,7 +106,7 @@ try:
 	while True:
 		ts = time.time()
 		frame = camera.read_frame()
-		resized_frame = cv2.resize(frame, (200, 66))
+		resized_frame = cv2.resize(frame, (320, 180))
 		cv2.imwrite("webcam.test.png", frame)
 
 		# ----- MOTORS ----- #  
