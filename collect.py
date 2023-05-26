@@ -6,6 +6,7 @@ import logging
 import cv2
 import numpy as np
 import random
+import math
 import utils.camera.webcam as camera
 import utils.camera.stream as stream
 # requires libhidapi-dev
@@ -14,7 +15,7 @@ import utils.camera.stream as stream
 # Robot Config        #
 #---------------------#
 CAMERA_FPS = 30
-CAMERA_RESOLUTION = (640, 360) #width then height
+CAMERA_RESOLUTION = (200, 66) #width then height
 VIDEO_FEED = False
 USE_THREADING = True
 RECORD_DATA = True
@@ -33,6 +34,11 @@ period = 0.05 # sec (=50ms)
 # Console Logging	    #
 #---------------------#
 logging.basicConfig(level=logging.INFO)
+
+def deg2rad(deg):
+	return deg * math.pi / 180.0
+def rad2deg(rad):
+	return 180.0 * rad / math.pi
 
 def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
@@ -116,7 +122,7 @@ try:
 		# 	current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
 		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
 
-		dir = ds.state.LX / 128 * 60
+		dir = int(ds.state.LX / 128 * 60)
 		if ds.state.R2 > 8:
 			sped = ds.state.R2 / 128 * MAX_SPEED
 		else:
@@ -153,6 +159,9 @@ try:
 			ds.light.setColorI(255, 255, 255)
 			frame_id = 0
 			RECORD_DATA = False
+
+		radians = deg2rad(dir)
+		print(radians)
 
 		# must have delay or the robot receives too many pwm inputs
 		#time.sleep(0.08)

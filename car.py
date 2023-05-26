@@ -294,7 +294,8 @@ while True:
 				#angle = model.predict(img)[0]
 				current_angle = model.predict(img, verbose=0)[0]
 				print(current_angle)
-			degree = rad2deg(angle)
+
+			degree = rad2deg(current_angle)
 
 		#print(current_speed)
 		#print(current_angle)

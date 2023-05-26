@@ -21,8 +21,8 @@ inputdev="keyboard"
 ##########################################################
 # input config 
 ##########################################################
-img_width = 640
-img_height = 360
+img_width = 200
+img_height = 66
 img_channels = 3
 
 # width used to be 200, height 66
