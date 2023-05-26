@@ -106,6 +106,7 @@ try:
 	while True:
 		ts = time.time()
 		frame = camera.read_frame()
+		resized_frame = cv2.resize(frame, (200, 66))
 		cv2.imwrite("webcam.test.png", frame)
 
 		# ----- MOTORS ----- #  
@@ -183,9 +184,6 @@ try:
 			# write input (angle)
 			info = "{},{},{}\n".format(int(ts * 1000), frame_id, radians)
 			keyfile.write(info)
-
-			resized_frame = cv2.resize(frame, (200, 66))
-
 			# write video stream
 			vidfile.write(resized_frame)
 			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
