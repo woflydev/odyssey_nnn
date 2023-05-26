@@ -47,6 +47,10 @@ FPV_VIDEO = False # only works if USE_NETWORK is true
 frame_id = 0
 angle = 0.0
 period = 0.05 # sec (=50ms)
+interpreter = None
+input_index = None
+output_index = None
+finish = False
 logging.basicConfig(level=logging.INFO)
 
 ##########################################################
@@ -132,6 +136,27 @@ def angle_to_thrust(speed, theta):
 	except:
 			logging.error("Couldn't calculate steering PWM!")
 
+def load_tflite():
+    global interpreter
+    global input_index
+    global output_index
+    ##########################################################
+    # import car's CNN tflite model
+    ##########################################################
+    print ("Loading TFLite: " + params.model_file)
+    try:
+        # Import TFLite interpreter from tflite_runtime package if it's available.
+        from tflite_runtime.interpreter import Interpreter
+        interpreter = Interpreter(params.model_file+'.tflite', num_threads=args.ncpu)
+    except ImportError:
+        # If not, fallback to use the TFLite interpreter from the full TF package.
+        import tensorflow as tf
+        interpreter = tf.lite.Interpreter(model_path=params.model_file+'.tflite', num_threads=args.ncpu)
+
+    interpreter.allocate_tensors()
+    input_index = interpreter.get_input_details()[0]["index"]
+    output_index = interpreter.get_output_details()[0]["index"]
+
 ##########################################################
 # program begins
 ##########################################################
@@ -145,7 +170,7 @@ parser.add_argument("--tflite", help="Use TFLite instead of H5 model.", action="
 parser.add_argument("--pre", help="Preprocessing [resize|crop]", type=str, default="resize")
 args = parser.parse_args()
 
-if args.cnn:
+if args.cnn: 
 	print("CNN Driver is enabled through flags!")
 	USE_CNN = True
 if args.hz:
@@ -164,12 +189,13 @@ print("CNN Model:", params.model_file, "\n")
 # import car's CNN model
 ##########################################################
 if args.tflite:
-	logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
+	#logging.warning("L bozo ur not using tflite. Loading H5 model instead...")
 	#import tensorflow.keras as ks
-	import keras as ks
-	import tensorflow_model_optimization as tfmot
-	with tfmot.quantization.keras.quantize_scope():
-		model = ks.models.load_model(params.model_file+'.h5')
+	load_tflite()
+	#import keras as ks
+	#import tensorflow_model_optimization as tfmot
+	#with tfmot.quantization.keras.quantize_scope():
+		#model = ks.models.load_model(params.model_file+'.h5')
 	#model = ks.models.load_model(params.model_file+'.h5')
 else:
 	#import tensorflow.keras as ks
@@ -284,16 +310,13 @@ while True:
 			img = preprocess(frame)
 			img = np.expand_dims(img, axis=0).astype(np.float32)
 			if args.tflite:
-				"""interpreter.set_tensor(input_index, img)
+				interpreter.set_tensor(input_index, img)
 				interpreter.invoke()
-				angle = interpreter.get_tensor(output_index)[0][0]"""
-				#angle = model.predict(img)[0]
-				current_angle = model.predict(img, verbose=0)[0]
-				print(current_angle)
+				current_angle = interpreter.get_tensor(output_index)[0][0]
+				print(f"QUANTIZED MODEL: {current_angle}")
 			else:
-				#angle = model.predict(img)[0]
-				current_angle = model.predict(img, verbose=0)[0]
-				print(current_angle)
+				current_angle = model.predict(img, verbose=0)[0][0]
+				print(f"CNN MODEL: {current_angle}")
 
 			degree = rad2deg(current_angle)
 
