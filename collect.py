@@ -161,7 +161,7 @@ try:
 			RECORD_DATA = False
 
 		radians = deg2rad(dir)
-		print(radians)
+		#print(radians)
 
 		# must have delay or the robot receives too many pwm inputs
 		#time.sleep(0.08)
@@ -174,7 +174,7 @@ try:
 			keyfile.write("ts,frame,wheel\n") # ts (ms)
 
 			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), CAMERA_RESOLUTION, True)
+			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), (200, 66), True)
 
 		if RECORD_DATA == True and frame is not None:
 			# increase frame_id
@@ -184,8 +184,10 @@ try:
 			info = "{},{},{}\n".format(int(ts * 1000), frame_id, radians)
 			keyfile.write(info)
 
+			resized_frame = cv2.resize(frame, (200, 66))
+
 			# write video stream
-			vidfile.write(frame)
+			vidfile.write(resized_frame)
 			#img_name = "cal_images/opencv_frame_{}.png".format(frame_id)
 			#cv2.imwrite(img_name, frame)
 			if frame_id >= MAX_FRAMES:

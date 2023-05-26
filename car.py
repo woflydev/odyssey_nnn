@@ -198,8 +198,11 @@ if args.tflite:
 		#model = ks.models.load_model(params.model_file+'.h5')
 	#model = ks.models.load_model(params.model_file+'.h5')
 else:
-	#import tensorflow.keras as ks
-	import keras as ks
+	try:
+		import tensorflow.keras as ks
+	except:
+		import keras as ks
+
 	import tensorflow_model_optimization as tfmot
 	with tfmot.quantization.keras.quantize_scope():
 		model = ks.models.load_model(params.model_file+'.h5')
@@ -309,22 +312,26 @@ while True:
 			# 1. machine input
 			img = preprocess(frame)
 			img = np.expand_dims(img, axis=0).astype(np.float32)
+			radians = 0
 			if args.tflite:
 				interpreter.set_tensor(input_index, img)
 				interpreter.invoke()
-				current_angle = interpreter.get_tensor(output_index)[0][0]
-				print(f"QUANTIZED MODEL: {current_angle}")
+				radians = interpreter.get_tensor(output_index)[0][0]
+				print(f"QUANTIZED MODEL: {radians}")
 			else:
-				current_angle = model.predict(img, verbose=0)[0][0]
-				print(f"CNN MODEL: {current_angle}")
+				radians = model.predict(img, verbose=0)[0][0]
+				print(f"CNN MODEL: {radians}")
 
-			degree = rad2deg(current_angle)
+			degree = rad2deg(radians) * 2
+			print(degree)
+
+		current_speed = 80
 
 		#print(current_speed)
 		#print(current_angle)
 
 		if current_speed != 0:
-			pwm = angle_to_thrust(current_speed, current_angle)
+			pwm = angle_to_thrust(current_speed, degree)
 			pwm_left = int(pwm[0])
 			pwm_right = int(pwm[1])
 			move((pwm_left), (pwm_right))
