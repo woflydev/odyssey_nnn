@@ -101,6 +101,7 @@ def preprocess(img):
 		img = crop_image(img)
 	else:
 		img = cv2.resize(img, (params.img_width, params.img_height))
+		img = (img / 255.).astype(np.float32)
 		# Convert to grayscale and readd channel dimension
 	if params.img_channels == 1:
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
