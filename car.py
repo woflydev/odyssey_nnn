@@ -138,25 +138,25 @@ def angle_to_thrust(speed, theta):
 			logging.error("Couldn't calculate steering PWM!")
 
 def load_tflite():
-    global interpreter
-    global input_index
-    global output_index
-    ##########################################################
-    # import car's CNN tflite model
-    ##########################################################
-    print ("Loading TFLite: " + params.model_file)
-    try:
-        # Import TFLite interpreter from tflite_runtime package if it's available.
-        from tflite_runtime.interpreter import Interpreter
-        interpreter = Interpreter(params.model_file+'.tflite', num_threads=args.ncpu)
-    except ImportError:
-        # If not, fallback to use the TFLite interpreter from the full TF package.
-        import tensorflow as tf
-        interpreter = tf.lite.Interpreter(model_path=params.model_file+'.tflite', num_threads=args.ncpu)
+		global interpreter
+		global input_index
+		global output_index
+		##########################################################
+		# import car's CNN tflite model
+		##########################################################
+		print ("Loading TFLite: " + params.model_file)
+		try:
+				# Import TFLite interpreter from tflite_runtime package if it's available.
+				from tflite_runtime.interpreter import Interpreter
+				interpreter = Interpreter(params.model_file+'.tflite', num_threads=args.ncpu)
+		except ImportError:
+				# If not, fallback to use the TFLite interpreter from the full TF package.
+				import tensorflow as tf
+				interpreter = tf.lite.Interpreter(model_path=params.model_file+'.tflite', num_threads=args.ncpu)
 
-    interpreter.allocate_tensors()
-    input_index = interpreter.get_input_details()[0]["index"]
-    output_index = interpreter.get_output_details()[0]["index"]
+		interpreter.allocate_tensors()
+		input_index = interpreter.get_input_details()[0]["index"]
+		output_index = interpreter.get_output_details()[0]["index"]
 
 ##########################################################
 # program begins
