@@ -5,6 +5,7 @@
 /*.zip
 
 data/driving/
+utils/notebooks/extracted/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
