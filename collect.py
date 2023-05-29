@@ -172,7 +172,7 @@ try:
 			print(f"Starting recording with ID: {identification}")
 			# create files for data recording
 			keyfile = open("data/driving/" + params.rec_csv_file + "-" + identification + ".csv", 'w+')
-			keyfile.write("ts,frame,wheel\n") # ts (ms)
+			keyfile.write("ts,frame,wheel,speed\n") # ts (ms)
 
 			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 			vidfile = cv2.VideoWriter("data/driving/" + params.rec_vid_file + "-" + identification + ".mp4", fourcc, float(CAMERA_FPS), (320, 180), True)
@@ -182,7 +182,7 @@ try:
 			frame_id += 1
 
 			# write input (angle)
-			info = "{},{},{}\n".format(int(ts * 1000), frame_id, radians)
+			info = "{},{},{},{}\n".format(int(ts * 1000), frame_id, radians, current_speed)
 			keyfile.write(info)
 			# write video stream
 			vidfile.write(resized_frame)
@@ -192,7 +192,7 @@ try:
 				print (f"recorded {MAX_FRAMES} frames")
 				break
 
-			print("%.3f %d %.3f %d(ms)" % (ts, frame_id, radians, int((time.time() - ts) * 1000)))
+			print("%.3f %d %.3f %.3f %d(ms)" % (ts, frame_id, current_speed, radians, int((time.time() - ts) * 1000)))
 
 except KeyboardInterrupt:
 	turn_off()
