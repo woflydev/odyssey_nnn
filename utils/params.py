@@ -33,7 +33,8 @@ img_channels = 3
 ##########################################################
 model_name = "model_large"
 #model_file = "data/models/{}-{}x{}x{}".format(model_name[6:], img_width, img_height, img_channels)
-model_file = "data/models/opt-320x180-91"
+#model_file = "data/models/opt-320x180-91"
+model_file = "data/models/ver1.0"
 
 ##########################################################
 # recording config 
