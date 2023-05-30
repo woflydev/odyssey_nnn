@@ -61,6 +61,15 @@ def deg2rad(deg):
 def rad2deg(rad):
 	return 180.0 * rad / math.pi
 
+def img_preprocess(image):
+	height, _, _ = image.shape
+	image = image[int(height/4):,:,:]  # remove top half of the image, as it is not relavant for lane following
+	image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)  # Nvidia model said it is best to use YUV color space
+	image = cv2.GaussianBlur(image, (3,3), 0)
+	image = cv2.resize(image, CAMERA_RESOLUTION) # input image size (200,66) Nvidia model
+	image = image / 255 # normalizing, the processed image becomes black for some reason.  do we need this?
+	return image
+
 def startup_signal(iterations, delay):
 	BLINK_DELAY = 0.2
 	for i in range(iterations):
@@ -332,10 +341,15 @@ while True:
 		#print(current_angle)
 
 		if current_speed != 0:
-			pwm = angle_to_thrust(current_speed, degree)
-			pwm_left = int(pwm[0])
-			pwm_right = int(pwm[1])
-			move((pwm_left), (pwm_right))
+			try:
+				pwm = angle_to_thrust(current_speed, degree)
+				pwm_left = int(pwm[0])
+				pwm_right = int(pwm[1])
+				move((pwm_left), (pwm_right))
+			except:
+				pwm_left = 0
+				pwm_right = 0
+				print("No PWM calculation input!")
 		else:
 			off()
 

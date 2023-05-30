@@ -44,6 +44,8 @@ def __update():
 	global frame
 	while use_thread:
 		ret, tmp_frame = cap.read() # blocking read
+		if ret is False:
+			print("no camera input!")
 		if need_flip == True:
 			frame = cv2.flip(tmp_frame, -1)
 		else:
