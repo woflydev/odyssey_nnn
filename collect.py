@@ -84,7 +84,8 @@ ds.init() 			# initialize controller
 ds.light.setColorI(255, 255, 255)
 ds.triggerL.setMode(TriggerModes.Rigid)
 ds.triggerR.setMode(TriggerModes.Rigid)
-ds.conType.BT = False # set connection type to bluetooth
+#ds.conType.BT = False # set connection type to bluetooth
+# this doesn't work
 
 current_angle = 0
 current_speed = 0
@@ -108,20 +109,6 @@ try:
 		frame = camera.read_frame()
 		resized_frame = cv2.resize(frame, (320, 180))
 		cv2.imwrite("webcam.test.png", frame)
-
-		# ----- MOTORS ----- #  
-		# if ds.state.triangle == 1:
-		# 	current_speed += 10 if current_speed < MAX_SPEED else 0
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.cross == 1:
-		# 	current_speed -= 10 if current_speed > 0 else 0
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.circle == 1:
-		# 	current_angle += 3 if current_angle < 40 - 3 else 0 # 40 seems to be the optimal turning speed angle
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
-		# elif ds.state.square == 1:
-		# 	current_angle -= 3 if current_angle > -40 + 3 else 0 # see above
-		# 	print(f"Speed: {current_speed}, Angle: {current_angle}")
 
 		dir = int(ds.state.LX / 128 * 60)
 		if ds.state.R2 > 8:

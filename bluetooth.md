@@ -1,0 +1,1 @@
+bluetooth off for troubleshooting. try ``systemctl start bluetooth`` or ``systemctl restart bluetooth``.
