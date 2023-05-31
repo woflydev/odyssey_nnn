@@ -1,5 +1,5 @@
 ## Checklist
-- [ ] version 1.1 and 2.0 need YUV colour space! implement on car.py
+- [x] version 1.1 and 2.0 need YUV colour space! implement on car.py
 - [ ] angle smoothing on car.
 - [ ] change collect.py to work with both degrees / radians (currently radians)
 
@@ -10,7 +10,8 @@
 	- on radian data
 	- 10 epochs at 300 SPE, 200 VSPE, batch size 100.
 	- test results:
-		- 
+		- extremely indecisive, choppy steering
+		- completed half of the uturn confidently
 
 - 2.0
 	- custom architecture

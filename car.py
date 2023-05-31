@@ -320,7 +320,8 @@ while True:
 			break
 		elif USE_CNN == True:
 			# 1. machine input
-			img = preprocess(frame)
+			#img = preprocess(frame)
+			img = img_preprocess(frame)
 			img = np.expand_dims(img, axis=0).astype(np.float32)
 			radians = 0
 			if args.tflite:
