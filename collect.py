@@ -84,7 +84,7 @@ ds.init() 			# initialize controller
 ds.light.setColorI(255, 255, 255)
 ds.triggerL.setMode(TriggerModes.Rigid)
 ds.triggerR.setMode(TriggerModes.Rigid)
-#ds.conType.BT = False # set connection type to bluetooth
+#szds.conType.BT = True # set connection type to bluetooth
 # this doesn't work
 
 current_angle = 0
