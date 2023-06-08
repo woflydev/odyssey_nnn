@@ -20,11 +20,13 @@ def init(res=(320, 240), fps=30, threading=True):
 	width = cap.get(3)
 	height = cap.get(4)
 
-	print('width, height:', width, height)
+	print('BASE RESOLUTION:', width, height)
 
 	cap.set(3, res[0]) # width
 	cap.set(4, res[1]) # height
 	cap.set(5, fps)
+
+	print('INITIALIZED RESOLUTION:', res)
 
 	# start the camera thread
 	if threading:

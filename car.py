@@ -61,6 +61,16 @@ def deg2rad(deg):
 def rad2deg(rad):
 	return 180.0 * rad / math.pi
 
+def stabilize_steering_angle(curr_steering_angle, new):
+	max_angle_deviation = 1
+	angle_deviation = new - curr_steering_angle
+	if abs(angle_deviation) > max_angle_deviation:
+		stabilized_steering_angle = int(curr_steering_angle + max_angle_deviation * angle_deviation / abs(angle_deviation))
+	else:
+		stabilized_steering_angle = new
+	#logging.info('Proposed angle: %s, stabilized angle: %s' % (new_steering_angle, stabilized_steering_angle))
+	return stabilized_steering_angle
+
 def img_preprocess(image):
 	height, _, _ = image.shape
 	image = image[int(height/4):,:,:]  # remove top half of the image, as it is not relavant for lane following
@@ -328,13 +338,15 @@ while True:
 				interpreter.set_tensor(input_index, img)
 				interpreter.invoke()
 				radians = interpreter.get_tensor(output_index)[0][0]
-				print(f"QUANTIZED MODEL: {radians}")
+				#print(f"QUANTIZED MODEL: {radians}")
 			else:
 				radians = model.predict(img, verbose=0)[0][0]
-				print(f"CNN MODEL: {radians}")
+				#print(f"CNN MODEL: {radians}")
 
-			degree = rad2deg(radians) * 2
-			print(degree)
+			new_steering_angle = rad2deg(radians)
+			current_angle = stabilize_steering_angle(current_angle, new_steering_angle)
+			#steering_angle /= 2
+			#print(f"MODEL: {steering_angle}")
 
 		current_speed = 80
 
@@ -343,7 +355,7 @@ while True:
 
 		if current_speed != 0:
 			try:
-				pwm = angle_to_thrust(current_speed, degree)
+				pwm = angle_to_thrust(current_speed, current_angle)
 				pwm_left = int(pwm[0])
 				pwm_right = int(pwm[1])
 				move((pwm_left), (pwm_right))
@@ -354,9 +366,12 @@ while True:
 		else:
 			off()
 
-		time.sleep(0.5)
+		# for debugging only
+		time.sleep(0.1)
 			
-		#print(f"current_angle: {current_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
+		print(f"current_angle: {new_steering_angle}, pwm_left: {pwm_left}, pwm_right: {pwm_right}")
+		hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+		cv2.imwrite("webcam.test.png", hsv)
 
 		"""if degree <= -args.turnthresh:
 			#actuator.left()
