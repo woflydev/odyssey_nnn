@@ -4,6 +4,8 @@ Our hard work finally paid off, as we were crowned the **Best Overall** and **1s
 - [Instagram](https://www.instagram.com/p/Cu8mdIEtegS/?img_index=1)
 - [Twitter](https://twitter.com/QUT/status/1679271733004578818)
 
+However, we didn't end up using this implementation on the day, due to some small bugs.
+
 ![team photo](https://github.com/woflydev/odyssey_cnn/blob/main/readme/team.jpg)
 
 ## Sister repositories
