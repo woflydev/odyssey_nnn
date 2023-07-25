@@ -4,7 +4,7 @@ Our hard work finally paid off, as we were crowned the **Best Overall** and **1s
 - [Instagram](https://www.instagram.com/p/Cu8mdIEtegS/?img_index=1)
 - [Twitter](https://twitter.com/QUT/status/1679271733004578818)
 
-However, we didn't end up using this implementation on the day, due to some small bugs.
+However, we didn't end up using this implementation on the day, due to some small bugs. Check [woflydev/odyssey_lsd](https://github.com/woflydev/odyssey_lsd) for the working code.
 
 ### [>> CLICK HERE FOR A DEMONSTRATION OF THE ROBOT RUNNING WITH OUR CODE <<](https://photos.app.goo.gl/apWUW5tePbo4QnF27)
 
