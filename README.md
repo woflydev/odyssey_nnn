@@ -6,6 +6,8 @@ Our hard work finally paid off, as we were crowned the **Best Overall** and **1s
 
 However, we didn't end up using this implementation on the day, due to some small bugs.
 
+### [>> CLICK HERE FOR A DEMONSTRATION OF THE ROBOT RUNNING WITH OUR CODE <<](https://photos.app.goo.gl/apWUW5tePbo4QnF27)
+
 ![team photo](https://github.com/woflydev/odyssey_cnn/blob/main/readme/team.jpg)
 
 ## Sister repositories
