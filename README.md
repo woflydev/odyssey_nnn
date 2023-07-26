@@ -26,7 +26,6 @@ Check ``odyssey_cnn`` for more detailed information about us and the team!
 - [@AwesomeGuy000](https://github.com/awesomeguy000)
 - [@xdBeanjo](https://github.com/xdBeanjo)
 - [@hashtable2020](https://github.com/hashtable2020)
-- [@echan103](https://github.com/echan103)
 - [@kelco-chan](https://github.com/kelco-chan)
 
 ## Contributing, Forking, and Support
